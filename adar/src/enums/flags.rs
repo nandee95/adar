@@ -1,8 +1,8 @@
 //! [`Flags`] is a type-safe and verbose bitwise flag container.
 
 use crate::prelude::{EnumVariant, ReflectEnum};
+use core::ops::{BitAnd, BitOr, BitXor, Not, Sub};
 use num_traits::{One, PrimInt, Zero};
-use std::ops::{BitAnd, BitOr, BitXor, Not, Sub};
 
 /// Type-safe and verbose bitwise flag container.
 /// The associated enum must be annotated with [`crate::macros::FlagEnum`] derive macro.
@@ -270,7 +270,7 @@ where
     /// An iterator.
     pub fn iter<'a>(&'a self) -> FlagsIterator<'a, E> {
         FlagsIterator::<E> {
-            iter: E::variants().iter() as std::slice::Iter<'static, EnumVariant<E>>,
+            iter: E::variants().iter() as core::slice::Iter<'static, EnumVariant<E>>,
             flags: self,
         }
     }
@@ -350,12 +350,12 @@ where
     }
 }
 
-impl<E> std::fmt::Debug for Flags<E>
+impl<E> core::fmt::Debug for Flags<E>
 where
     E: ReflectEnum + Into<E::Type> + Copy + 'static,
     E::Type: FlagTypeConstraints,
 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let mut first = true;
         write!(f, "(")?;
         for flag in self.iter() {
@@ -375,7 +375,7 @@ pub struct FlagsIterator<'a, E>
 where
     E: ReflectEnum + 'static,
 {
-    iter: std::slice::Iter<'static, EnumVariant<E>>,
+    iter: core::slice::Iter<'static, EnumVariant<E>>,
     flags: &'a Flags<E>,
 }
 

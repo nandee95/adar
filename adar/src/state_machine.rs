@@ -1,4 +1,4 @@
-use std::marker::PhantomData;
+use core::marker::PhantomData;
 
 pub trait StateTypes<P1 = (), P2 = (), P3 = (), P4 = (), P5 = (), P6 = (), P7 = (), P8 = ()> {
     type States;
@@ -171,16 +171,16 @@ where
     }
 }
 
-impl<S, P1, P2, P3, P4, P5, P6, P7, P8> std::fmt::Debug
+impl<S, P1, P2, P3, P4, P5, P6, P7, P8> core::fmt::Debug
     for StateMachine<S, P1, P2, P3, P4, P5, P6, P7, P8>
 where
     S: State<P1, P2, P3, P4, P5, P6, P7, P8>
         + Machine<P1, P2, P3, P4, P5, P6, P7, P8>
         + StateTypes<P1, P2, P3, P4, P5, P6, P7, P8, States = S>,
-    S::States: std::fmt::Debug,
-    S::Context: std::fmt::Debug,
+    S::States: core::fmt::Debug,
+    S::Context: core::fmt::Debug,
 {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         f.debug_struct("StateMachine")
             .field("state", &self.state)
             .field("context", &self.context)
@@ -253,7 +253,7 @@ mod test {
         }
 
         pub fn take(&self) -> Vec<(MockState, MockCall)> {
-            std::mem::take(&mut self.0.lock().unwrap().calls)
+            core::mem::take(&mut self.0.lock().unwrap().calls)
         }
 
         pub fn b_transition(&self, state: Test) {

@@ -9,7 +9,8 @@ repository = "https://github.com/nandee95/adar/tree/main/adar"
 documentation = "https://docs.rs/adar"
 
 [features]
-default = ["serde"]
+default = ["serde", "std"]
+std = []
 serde = ["dep:serde"]
 
 [dependencies]

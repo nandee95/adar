@@ -1,4 +1,4 @@
-use std::ops::{Deref, DerefMut};
+use core::ops::{Deref, DerefMut};
 
 pub trait AsTraitRef<T: ?Sized>: Sized {
     fn as_trait_ref(&self) -> &T;
@@ -29,26 +29,31 @@ macro_rules! impl_as_trait_ref {
     };
 }
 
-impl_as_trait_ref!(std::any::Any);
-impl_as_trait_ref!(std::fmt::Debug);
-impl_as_trait_ref!(std::fmt::Display);
-impl_as_trait_ref!(std::error::Error);
+impl_as_trait_ref!(core::any::Any);
+impl_as_trait_ref!(core::fmt::Debug);
+impl_as_trait_ref!(core::fmt::Display);
+impl_as_trait_ref!(core::error::Error);
+impl_as_trait_ref!(core::fmt::Binary);
+impl_as_trait_ref!(core::fmt::Octal);
+impl_as_trait_ref!(core::fmt::LowerHex);
+impl_as_trait_ref!(core::fmt::UpperHex);
+impl_as_trait_ref!(core::fmt::Pointer);
+impl_as_trait_ref!(core::fmt::LowerExp);
+impl_as_trait_ref!(core::fmt::UpperExp);
+impl_as_trait_ref!(core::convert::AsRef<[T]>);
+impl_as_trait_ref!(core::convert::AsMut<[T]>);
+impl_as_trait_ref!(core::borrow::Borrow<[T]>);
+impl_as_trait_ref!(core::borrow::BorrowMut<[T]>);
+#[cfg(feature = "std")]
 impl_as_trait_ref!(std::io::Read);
+#[cfg(feature = "std")]
 impl_as_trait_ref!(std::io::Write);
+#[cfg(feature = "std")]
 impl_as_trait_ref!(std::io::BufRead);
+#[cfg(feature = "std")]
 impl_as_trait_ref!(std::io::Seek);
-impl_as_trait_ref!(std::fmt::Binary);
-impl_as_trait_ref!(std::fmt::Octal);
-impl_as_trait_ref!(std::fmt::LowerHex);
-impl_as_trait_ref!(std::fmt::UpperHex);
-impl_as_trait_ref!(std::fmt::Pointer);
-impl_as_trait_ref!(std::fmt::LowerExp);
-impl_as_trait_ref!(std::fmt::UpperExp);
+#[cfg(feature = "std")]
 impl_as_trait_ref!(std::string::ToString);
-impl_as_trait_ref!(std::convert::AsRef<[T]>);
-impl_as_trait_ref!(std::convert::AsMut<[T]>);
-impl_as_trait_ref!(std::borrow::Borrow<[T]>);
-impl_as_trait_ref!(std::borrow::BorrowMut<[T]>);
 
 impl<T, U> AsTraitRef<dyn Deref<Target = U>> for T
 where

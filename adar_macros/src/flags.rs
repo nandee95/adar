@@ -20,7 +20,7 @@ pub fn flag_enum_macro_inner(mut input: DeriveInput) -> syn::Result<proc_macro2:
         #[ReflectEnum]
         #input
 
-        impl #impl_generics std::ops::BitOr for #ident #ty_generics #where_clause
+        impl #impl_generics ::core::ops::BitOr for #ident #ty_generics #where_clause
         where
             Self: adar::prelude::ReflectEnum
         {
