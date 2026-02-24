@@ -3,14 +3,16 @@ name = "adar"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-description = "Advanced Architecture (ADAR) is a collection of architectural tools that help you write more readable and performant code."
-keywords = ["architecture", "design", "flags", "statemachine"]
+description = "Collection of architectural tools including flags, state machine, enum and tuple operations."
+keywords = ["architecture", "design", "flag", "statemachine", "tuple"]
 repository = "https://github.com/nandee95/adar/tree/main/adar"
 documentation = "https://docs.rs/adar"
 
 [features]
 default = ["serde", "std"]
+## Enable `std` support
 std = []
+## Enable `serde` support
 serde = ["dep:serde"]
 
 [dependencies]

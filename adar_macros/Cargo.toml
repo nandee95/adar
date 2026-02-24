@@ -3,7 +3,7 @@ name = "adar-macros"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-description = "Advanced Architecture (ADAR) is a collection of architectural tools that help you write more readable and performant code."
+description = "This crate contains the macros for the 'adar' crate."
 repository = "https://github.com/nandee95/adar/tree/main/adar_macros"
 documentation = "https://docs.rs/adar-macros"
 
