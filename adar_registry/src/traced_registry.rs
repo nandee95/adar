@@ -4,7 +4,7 @@ use crate::{
     registry::{Registry, RegistryReadGuard, RegistryWriteGuard},
 };
 /// Event types emitted by a traced registry.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TracedRegistryEvent {
     Register,
     UnRegister,
