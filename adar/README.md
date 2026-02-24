@@ -503,3 +503,110 @@ impl ::core::ops::Deref for MyEnum {
 ```
 
 </details>
+
+## Tuple operations
+### Features
+- Concatenation (When the exact type is known at compile time, see [TupleConcat::concat()](prelude::TupleConcat::concat))
+- Iteration (Only for homogeneous tuples, see [TupleIter::iter()](prelude::TupleIter::iter))
+- Iteration over implemented trait (Each tuple element needs to implement the trait, see [TupleTraitIter::iter_trait()](prelude::TupleTraitIter::iter_trait), [TupleTraitIterMut::iter_trait_mut()](prelude::TupleTraitIterMut::iter_trait_mut))
+- Select tuple element by type (The tuple must contain exactly one element of the given type, see [TupleSelect::select](prelude::TupleSelect::select))
+### Example
+```rust
+use adar::prelude::*;
+
+#[TraitRef]
+trait ToStringCapital {
+    fn to_string_capital(&self) -> String;
+}
+
+impl<T> ToStringCapital for T
+where
+    T: ToString,
+{
+    fn to_string_capital(&self) -> String {
+        self.to_string()
+            .chars()
+            .map(|c| c.to_uppercase().next().unwrap())
+            .collect()
+    }
+}
+
+fn main() {
+    println!("Homogeneous:");
+    let homogeneous = (1, 2, 3, 4);
+    for i in homogeneous.iter() {
+        println!("\t{i}");
+    }
+
+    let mixed = ("String", 24, true, 2.2);
+    println!("Mixed -> ToString:");
+    // Automatically implemented for all std/core traits
+    for i in mixed.iter_trait::<dyn ToString>() {
+        println!("\t{}", i.to_string());
+    }
+    // Needs #[TraitRef] for custom traits
+    println!("Mixed -> ToStringCapital:");
+    for i in mixed.iter_trait::<dyn ToStringCapital>() {
+        println!("\t{}", i.to_string_capital());
+    }
+
+    println!("Concat: {:?}", homogeneous.concat(mixed));
+    println!("Sum of homogeneous: {:?}", homogeneous.iter().sum::<i32>());
+    println!("F32 from mixed: {:?}", mixed.select::<f32>());
+    println!("bool from mixed: {:?}", mixed.select::<bool>());
+}
+```
+
+<details>
+<summary>Click to see the output</summary>
+<code><b>>> cargo run --example tuple_operations</b></code>
+
+```ignore
+Homogeneous:
+        1
+        2
+        3
+        4
+Mixed -> ToString:
+        String
+        24
+        true
+        2.2
+Mixed -> ToStringCapital:
+        STRING
+        24
+        TRUE
+        2.2
+Concat: (1, 2, 3, 4, "String", 24, true, 2.2)
+Sum of homogeneous: 10
+F32 from mixed: 2.2
+bool from mixed: true
+```
+
+</details>
+<details>
+<summary>Click to see the generated code</summary>
+<code><b>>> cargo expand --example tuple_operations</b></code>
+
+```rust,ignore
+...
+impl<'a, T> adar::prelude::AsTraitRef<T> for dyn CustomTrait
+where
+    T: CustomTrait + 'static,
+{
+    fn as_trait_ref(value: &T) -> &Self {
+        value
+    }
+}
+impl<'a, T> adar::prelude::AsTraitMut<T> for dyn CustomTrait
+where
+    T: CustomTrait + 'static,
+{
+    fn as_trait_mut(value: &mut T) -> &mut Self {
+        value
+    }
+}
+...
+```
+
+</details>
