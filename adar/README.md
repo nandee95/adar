@@ -6,6 +6,13 @@
 
 Adar is a collection of architectural tools that help you write more readable and performant code.
 
+### Table of contents
+- [Flags](#flags)
+- [StateMachine](#state-machine)
+- [ReflectEnum](#reflect-enum)
+- [EnumTraitDeref](#enum-trait-deref)
+- [Tuple operations](#tuple-operations)
+
 ## Flags
 
 [Flags](`crate::enums::Flags`) is a type-safe and verbose bitwise flag container. Most of the flag operations are inlined.
@@ -84,7 +91,7 @@ where
 
 </details>
 
-## StateMachine
+## State Machine
 
 ### Features
 
