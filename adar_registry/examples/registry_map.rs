@@ -16,5 +16,9 @@ fn main() {
     let registry = RegistryMap::<&'static str, Box<dyn EndPoint + Send + Sync + 'static>>::new();
     let _entry = registry.register("get_user", Box::new(GetUser));
 
-    registry.read().get(&"get_user").unwrap().execute();
+    registry
+        .read()
+        .get(&"get_user")
+        .expect("Endpoint not found!")
+        .execute();
 }

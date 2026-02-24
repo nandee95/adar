@@ -6,10 +6,10 @@ fn main() {
         println!("{:?}, {:?}, {}", event, entry, value)
     });
 
-    let foo = registry.register("foo");
-    let bar = registry.register("bar");
+    let foo = registry.register("one");
+    let bar = registry.register("two");
     drop(foo);
-    let baz = registry.register("baz");
+    let baz = registry.register("three");
     drop(bar);
     drop(baz);
 }
