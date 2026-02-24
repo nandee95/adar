@@ -1,11 +1,11 @@
-pub trait ConcatTuple<O, Res> {
+pub trait TupleConcat<O, Res> {
     fn concat(self, other: O) -> Res;
 }
 
 macro_rules! impl_concat_tuple {
     // Non-empty + non-empty
     (($($idx_a:tt => $a:ident,)*), ($($idx_b:tt => $b:ident,)*)) => {
-        impl<$($a,)* $($b,)*> ConcatTuple<($($b,)*), ($($a,)* $($b,)*)> for ($($a,)*) {
+        impl<$($a,)* $($b,)*> TupleConcat<($($b,)*), ($($a,)* $($b,)*)> for ($($a,)*) {
             #[inline(always)]
             fn concat(self, other: ($($b,)*)) -> ($($a,)* $($b,)*) {
                 ($(
@@ -19,7 +19,7 @@ macro_rules! impl_concat_tuple {
 
     // Empty + non-empty
     ((,), ($($idx_b:tt => $b:ident,)*)) => {
-        impl<$($b,)*> ConcatTuple<($($b,)*), ($($b,)*)> for () {
+        impl<$($b,)*> TupleConcat<($($b,)*), ($($b,)*)> for () {
             #[inline(always)]
             fn concat(self, other: ($($b,)*)) -> ($($b,)*) {
                 ($(
@@ -31,7 +31,7 @@ macro_rules! impl_concat_tuple {
 
     // Non-empty + empty
     (($($idx_a:tt => $a:ident,)*), (,)) => {
-        impl<$($a,)*> ConcatTuple<(), ($($a,)*)> for ($($a,)*) {
+        impl<$($a,)*> TupleConcat<(), ($($a,)*)> for ($($a,)*) {
             #[inline(always)]
             fn concat(self, _other: ()) -> ($($a,)*) {
                 ($(
@@ -43,7 +43,7 @@ macro_rules! impl_concat_tuple {
 
     // Empty + empty
     ((,), (,)) => {
-        impl ConcatTuple<(), ()> for () {
+        impl TupleConcat<(), ()> for () {
             #[inline(always)]
             fn concat(self, _other: ()) -> () {
                 ()

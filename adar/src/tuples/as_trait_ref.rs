@@ -1,29 +1,28 @@
 use core::ops::{Deref, DerefMut};
 
-pub trait AsTraitRef<T: ?Sized>: Sized {
-    fn as_trait_ref(&self) -> &T;
+pub trait AsTraitRef<T: ?Sized> {
+    fn as_trait_ref(value: &T) -> &Self;
 }
-
-pub trait AsTraitRefMut<T: ?Sized>: Sized {
-    fn as_trait_mut(&mut self) -> &T;
+pub trait AsTraitMut<T: ?Sized> {
+    fn as_trait_mut(value: &mut T) -> &mut Self;
 }
 
 macro_rules! impl_as_trait_ref {
     ($trait:path) => {
-        impl<T> AsTraitRef<dyn $trait> for T
+        impl<T> AsTraitRef<T> for dyn $trait
         where
-            T: Sized + $trait + 'static,
+            T: $trait + 'static,
         {
-            fn as_trait_ref(&self) -> &(dyn $trait + 'static) {
-                self
+            fn as_trait_ref(value: &T) -> &Self {
+                value
             }
         }
-        impl<T> AsTraitRefMut<dyn $trait> for T
+        impl<T> AsTraitMut<T> for dyn $trait
         where
-            T: Sized + $trait + 'static,
+            T: $trait + 'static,
         {
-            fn as_trait_mut(&mut self) -> &(dyn $trait + 'static) {
-                self
+            fn as_trait_mut(value: &mut T) -> &mut Self {
+                value
             }
         }
     };
@@ -55,38 +54,38 @@ impl_as_trait_ref!(std::io::Seek);
 #[cfg(feature = "std")]
 impl_as_trait_ref!(std::string::ToString);
 
-impl<T, U> AsTraitRef<dyn Deref<Target = U>> for T
+impl<T, U> AsTraitRef<T> for dyn Deref<Target = U>
 where
     T: Deref<Target = U> + 'static,
 {
-    fn as_trait_ref(&self) -> &(dyn Deref<Target = U> + 'static) {
-        self
+    fn as_trait_ref(value: &T) -> &Self {
+        value
     }
 }
 
-impl<T, U> AsTraitRefMut<dyn Deref<Target = U>> for T
+impl<T, U> AsTraitMut<T> for dyn Deref<Target = U>
 where
     T: Deref<Target = U> + 'static,
 {
-    fn as_trait_mut(&mut self) -> &(dyn Deref<Target = U> + 'static) {
-        self
+    fn as_trait_mut(value: &mut T) -> &mut Self {
+        value
     }
 }
 
-impl<T, U> AsTraitRef<dyn DerefMut<Target = U>> for T
+impl<T, U> AsTraitRef<T> for dyn DerefMut<Target = U>
 where
     T: DerefMut<Target = U> + 'static,
 {
-    fn as_trait_ref(&self) -> &(dyn DerefMut<Target = U> + 'static) {
-        self
+    fn as_trait_ref(value: &T) -> &(dyn DerefMut<Target = U> + 'static) {
+        value
     }
 }
 
-impl<T, U> AsTraitRefMut<dyn DerefMut<Target = U>> for T
+impl<T, U> AsTraitMut<T> for dyn DerefMut<Target = U>
 where
     T: DerefMut<Target = U> + 'static,
 {
-    fn as_trait_mut(&mut self) -> &(dyn DerefMut<Target = U> + 'static) {
-        self
+    fn as_trait_mut(value: &mut T) -> &mut Self {
+        value
     }
 }
