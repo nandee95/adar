@@ -1,6 +1,6 @@
 [package]
 name = "adar-registry"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 license = "MIT"
 description = "Advanced Architecture (ADAR) is a collection of architectural tools that help you write more readable and performant code."
