@@ -107,14 +107,14 @@ where
     }
 
     /// Creates a [`RegistryMapReadGuard`] which can be used to read the contents of the RegistryMap.
-    pub fn read(&self) -> RegistryMapReadGuard<K, T> {
+    pub fn read(&self) -> RegistryMapReadGuard<'_, K, T> {
         RegistryMapReadGuard::<K, T> {
             guard: self.inner.read().unwrap(),
         }
     }
 
     /// Creates a [`RegistryMapWriteGuard`] which can be used to write the contents of the RegistryMap.
-    pub fn write(&self) -> RegistryMapWriteGuard<K, T> {
+    pub fn write(&self) -> RegistryMapWriteGuard<'_, K, T> {
         RegistryMapWriteGuard::<K, T> {
             guard: self.inner.write().unwrap(),
         }

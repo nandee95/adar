@@ -557,12 +557,6 @@ mod test {
         F9,
     }
 
-    #[FlagEnum]
-    #[repr(u64)]
-    enum TestFlagsForced {
-        F,
-    }
-
     #[test]
     fn test_flag_default() {
         let flags = Flags::<TestU8>::default();

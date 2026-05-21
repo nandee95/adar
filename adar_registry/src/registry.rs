@@ -79,14 +79,14 @@ where
     }
 
     /// Creates a [`RegistryReadGuard`] which can be used to read the contents of the registry.
-    pub fn read(&self) -> RegistryReadGuard<T> {
+    pub fn read(&self) -> RegistryReadGuard<'_, T> {
         RegistryReadGuard::<T> {
             guard: self.inner.read().unwrap(),
         }
     }
 
     /// Creates a [`RegistryWriteGuard`] which can be used to write the contents of the registry.
-    pub fn write(&self) -> RegistryWriteGuard<T> {
+    pub fn write(&self) -> RegistryWriteGuard<'_, T> {
         RegistryWriteGuard::<T> {
             guard: self.inner.write().unwrap(),
         }

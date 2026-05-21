@@ -54,7 +54,7 @@ where
     /// lock can be acquired!
     /// # Return
     /// [`None`] if the [`crate::registry::Registry`] no longer exists.
-    pub fn write(&self) -> Option<EntryWriteGuard<T>> {
+    pub fn write(&self) -> Option<EntryWriteGuard<'_, T>> {
         let registry = self.iface.upgrade()?;
         let ptr = self.iface.as_ptr();
         // Note: The acquired pointer will be valid as long as a strong reference is alive.
@@ -73,7 +73,7 @@ where
     /// lock can be acquired!
     /// # Return
     /// [`None`] if the [`crate::registry::Registry`] no longer exists.
-    pub fn read(&self) -> Option<EntryReadGuard<T>> {
+    pub fn read(&self) -> Option<EntryReadGuard<'_, T>> {
         let registry = self.iface.upgrade()?;
         let ptr = self.iface.as_ptr();
         // Note: The acquired pointer will be valid as long as a strong reference is alive.
