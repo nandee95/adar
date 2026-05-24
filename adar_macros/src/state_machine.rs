@@ -5,12 +5,51 @@ use syn::{parse::*, *};
 pub fn state_enum_macro_inner(
     args: StateMachineArgs,
     mut input: DeriveInput,
+    is_async: bool,
 ) -> syn::Result<TokenStream> {
     let Data::Enum(data_enum) = &mut input.data else {
         return Err(syn::Error::new(
             Span::call_site(),
             "#[StateEnum] macro only supports enums",
         ));
+    };
+
+    let fn_type = if is_async {
+        quote! {async fn}
+    } else {
+        quote! {fn}
+    };
+
+    let opt_async_trait = if is_async {
+        if cfg!(feature = "async-st") {
+            quote! {
+                #[adar::async_trait(?Send)]
+            }
+        } else {
+            quote! {
+                #[adar::async_trait]
+            }
+        }
+    } else {
+        quote! {}
+    };
+
+    let state_type = if is_async {
+        quote! {adar::prelude::StateAsync}
+    } else {
+        quote! {adar::prelude::State}
+    };
+
+    let state_types_type = if is_async {
+        quote! {adar::prelude::StateTypesAsync}
+    } else {
+        quote! {adar::prelude::StateTypes}
+    };
+
+    let opt_await = if is_async {
+        quote! {.await}
+    } else {
+        quote! {}
     };
 
     let ident = &input.ident;
@@ -84,7 +123,7 @@ pub fn state_enum_macro_inner(
         });
 
         let meta = quote! {
-            impl #combined_gen adar::prelude::StateTypes #combined_gen for #variant_ident #combined_where {
+            impl #combined_gen #state_types_type #combined_gen for #variant_ident #combined_where {
                 type States = #ident;
                 type Args = #args_type;
                 type Context = #ctx_type;
@@ -146,6 +185,7 @@ pub fn state_enum_macro_inner(
             .collect(),
         });
     }
+
     Ok(quote! {
         #input
 
@@ -154,31 +194,32 @@ pub fn state_enum_macro_inner(
         )*
 
 
-        impl #combined_gen adar::prelude::StateTypes #combined_gen for #ident #combined_where{
+        impl #combined_gen #state_types_type #combined_gen for #ident #combined_where{
             type States = Self;
             type Args = #args_type;
             type Context = #ctx_type;
         }
 
-        impl #combined_gen adar::prelude::State #combined_gen for #ident #combined_where
+        #opt_async_trait
+        impl #combined_gen #state_type #combined_gen for #ident #combined_where
         {
-            fn on_enter(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {
+            #fn_type on_enter(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {
                 match self {
-                    #(Self::#variants(s)=> #variants::on_enter(s, args, context)),*,
+                    #(Self::#variants(s)=> #variants::on_enter(s, args, context) #opt_await),*,
                     _=>(),
                 }
             }
 
-            fn on_update(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) -> Option<Self::States> {
+            #fn_type on_update(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) -> Option<Self::States> {
                 match self {
-                    #(Self::#variants(s)=> #variants::on_update(s, args, context)),*,
+                    #(Self::#variants(s)=> #variants::on_update(s, args, context) #opt_await),*,
                     _=>None,
                 }
             }
 
-            fn on_leave(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {
+            #fn_type on_leave(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {
                 match self {
-                    #(Self::#variants(s)=> #variants::on_leave(s, args, context)),*,
+                    #(Self::#variants(s)=> #variants::on_leave(s, args, context) #opt_await),*,
                     _=>(),
                 }
             }

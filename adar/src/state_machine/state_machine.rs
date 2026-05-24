@@ -1,3 +1,4 @@
+use crate::utils::UnitType;
 use core::marker::PhantomData;
 
 pub trait StateTypes<P1 = (), P2 = (), P3 = (), P4 = (), P5 = (), P6 = (), P7 = (), P8 = ()> {
@@ -52,13 +53,6 @@ where
     phantom: PhantomData<(P1, P2, P3, P4, P5, P6, P7, P8)>,
 }
 
-pub trait UnitType {
-    fn unit() -> Self;
-}
-impl UnitType for () {
-    fn unit() -> Self {}
-}
-
 impl<S, P1, P2, P3, P4, P5, P6, P7, P8> StateMachine<S, P1, P2, P3, P4, P5, P6, P7, P8>
 where
     S: State<P1, P2, P3, P4, P5, P6, P7, P8>
@@ -68,9 +62,9 @@ where
     pub fn new_context<S2>(
         state: S2,
         mut context: S::Context,
-    ) -> StateMachine<S2::States, P1, P2, P3, P4, P5, P6, P7, P8>
+    ) -> StateMachine<S::States, P1, P2, P3, P4, P5, P6, P7, P8>
     where
-        S2: StateTypes<P1, P2, P3, P4, P5, P6, P7, P8, States = S> + Into<S2::States>,
+        S2: StateTypes<P1, P2, P3, P4, P5, P6, P7, P8, States = S> + Into<S::States>,
     {
         let mut state = state.into() as S2::States;
         state.on_enter(None, &mut context);
@@ -83,7 +77,7 @@ where
 
     pub fn new<S2>(state: S2) -> Self
     where
-        S2: StateTypes<P1, P2, P3, P4, P5, P6, P7, P8, States = S> + Into<S2::States>,
+        S2: StateTypes<P1, P2, P3, P4, P5, P6, P7, P8, States = S> + Into<S::States>,
         S::Context: Default,
     {
         Self::new_context(state, S::Context::default())
@@ -218,6 +212,7 @@ pub trait HasEndState {
 mod test {
     use crate::{self as adar, prelude::*};
     use once_cell::sync::Lazy;
+    use serial_test::serial;
     use std::sync::{Arc, Mutex};
 
     #[derive(Eq, PartialEq, Debug)]
@@ -357,6 +352,7 @@ mod test {
     }
 
     #[test]
+    #[serial]
     fn test_external_transition_and_update() {
         let mut sm = StateMachine::new_context(A, 0);
         assert_eq!(
@@ -407,6 +403,7 @@ mod test {
     }
 
     #[test]
+    #[serial]
     fn test_internal_transition_and_update() {
         let mut sm = StateMachine::new_context(B, 0);
         assert_eq!(

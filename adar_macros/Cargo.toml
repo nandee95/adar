@@ -7,6 +7,10 @@ description = "This crate contains the macros for the 'adar' crate."
 repository = "https://github.com/nandee95/adar/tree/main/adar_macros"
 documentation = "https://docs.rs/adar-macros"
 
+[features]
+## Removes the Send restrictions from async trait implementations (For single threaded async runtimes)
+async-st = []
+
 [lib]
 proc-macro = true
 

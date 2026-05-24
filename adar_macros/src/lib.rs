@@ -56,7 +56,17 @@ pub fn EnumTraitDerefMut(attr: TokenStream, input: TokenStream) -> TokenStream {
 pub fn StateEnum(attr: TokenStream, input: TokenStream) -> TokenStream {
     let attr = parse_macro_input!(attr as StateMachineArgs);
     let input = parse_macro_input!(input as DeriveInput);
-    state_enum_macro_inner(attr, input)
+    state_enum_macro_inner(attr, input, false)
+        .unwrap_or_else(|err| err.to_compile_error())
+        .into()
+}
+
+#[allow(non_snake_case)]
+#[proc_macro_attribute]
+pub fn StateEnumAsync(attr: TokenStream, input: TokenStream) -> TokenStream {
+    let attr = parse_macro_input!(attr as StateMachineArgs);
+    let input = parse_macro_input!(input as DeriveInput);
+    state_enum_macro_inner(attr, input, true)
         .unwrap_or_else(|err| err.to_compile_error())
         .into()
 }

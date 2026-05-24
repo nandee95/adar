@@ -107,8 +107,8 @@ where
 - Operating modes
   - Non-blocking mode (see [update_args](crate::state_machine::StateMachine::update_args))
   - Blocking mode (see [run_args](crate::state_machine::StateMachine::run_args))
+- Sync and Async support (see [StateMachine](crate::state_machine::StateMachine) and [StateMachineAsync](crate::state_machine::StateMachineAsync))
 - End state (see [EndState](crate::state_machine::EndState), [is_finished](crate::state_machine::HasEndState::is_finished))
-- Sync only
 
 ### Example
 
