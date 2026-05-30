@@ -36,7 +36,7 @@ pub fn ReflectEnum(attr: TokenStream, input: TokenStream) -> TokenStream {
 pub fn EnumTraitDeref(attr: TokenStream, input: TokenStream) -> TokenStream {
     let attr = parse_macro_input!(attr as TypeTraitObject);
     let input = parse_macro_input!(input as DeriveInput);
-    enum_trait_deref_macro_inner(attr.into(), input, false)
+    enum_trait_deref_macro_inner(attr, input, false)
         .unwrap_or_else(|err| err.to_compile_error())
         .into()
 }
@@ -46,7 +46,7 @@ pub fn EnumTraitDeref(attr: TokenStream, input: TokenStream) -> TokenStream {
 pub fn EnumTraitDerefMut(attr: TokenStream, input: TokenStream) -> TokenStream {
     let attr = parse_macro_input!(attr as TypeTraitObject);
     let input = parse_macro_input!(input as DeriveInput);
-    enum_trait_deref_macro_inner(attr.into(), input, true)
+    enum_trait_deref_macro_inner(attr, input, true)
         .unwrap_or_else(|err| err.to_compile_error())
         .into()
 }

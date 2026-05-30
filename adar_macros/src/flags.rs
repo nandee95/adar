@@ -30,8 +30,7 @@ pub fn flag_enum_macro_inner(mut input: DeriveInput) -> syn::Result<proc_macro2:
                 Flags::empty() | self | rhs
             }
         }
-    }
-    .into())
+    })
 }
 
 fn patch_flag_discriminants(data_enum: &mut DataEnum) -> syn::Result<()> {

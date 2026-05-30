@@ -88,21 +88,18 @@ pub fn reflect_enum_macro_inner(input: DeriveInput) -> syn::Result<proc_macro2::
                 #name_impl
             }
         }
-    }
-    .into())
+    })
 }
 
 pub fn enum_repr(input: &DeriveInput) -> String {
     const DEFAULT_REPR: &str = "u32";
     for attr in &input.attrs {
         if attr.path().is_ident("repr") {
-            if let Ok(meta) = attr.parse_args() {
-                if let syn::Meta::Path(path) = meta {
-                    return path
-                        .get_ident()
-                        .map(|i| i.to_string())
-                        .unwrap_or(DEFAULT_REPR.into());
-                }
+            if let Ok(syn::Meta::Path(path)) = attr.parse_args() {
+                return path
+                    .get_ident()
+                    .map(|i| i.to_string())
+                    .unwrap_or(DEFAULT_REPR.into());
             }
         }
     }

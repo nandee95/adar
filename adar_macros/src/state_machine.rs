@@ -226,8 +226,7 @@ pub fn state_enum_macro_inner(
         }
 
         #end_state
-    }
-    .into())
+    })
 }
 
 #[derive(Default, Debug)]

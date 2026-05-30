@@ -47,9 +47,9 @@ where
         self.observers.register(Box::new(observer)).as_generic()
     }
 
-    pub fn dispatch(&self, mut args: Args) {
+    pub fn dispatch(&self, args: Args) {
         for (_, observer) in self.observers.read().iter() {
-            (**observer).notify(&mut args);
+            (**observer).notify(&args);
         }
     }
 }

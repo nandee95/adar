@@ -1,4 +1,5 @@
 #![doc = include_str!("../README.md")]
+#![allow(clippy::type_complexity)]
 
 pub mod entry;
 pub mod event;

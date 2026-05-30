@@ -54,6 +54,5 @@ pub fn enum_trait_deref_macro_inner(
         }
 
         #mut_impl
-    }
-    .into())
+    })
 }

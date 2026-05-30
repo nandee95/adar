@@ -24,6 +24,5 @@ pub fn trait_ref_macro_inner(input: ItemTrait) -> syn::Result<TokenStream> {
                 value
             }
         }
-    }
-    .into())
+    })
 }

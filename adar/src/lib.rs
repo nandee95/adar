@@ -1,6 +1,7 @@
 #![doc = include_str!("../README.md")]
 #![cfg_attr(not(feature = "std"), no_std)]
-
+#![allow(clippy::module_inception)]
+#![allow(clippy::type_complexity)]
 #[cfg(feature = "alloc")]
 extern crate alloc;
 

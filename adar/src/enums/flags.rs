@@ -239,14 +239,14 @@ where
     /// #[FlagEnum]
     /// enum MyFlags {A, B, C, D}
     ///
-    /// assert_eq!((MyFlags::A | MyFlags::B).len(), 2);
-    /// assert_eq!(Flags::<MyFlags>::empty().len(), 0);
-    /// assert_eq!(Flags::<MyFlags>::full().len(), 4);
+    /// assert_eq!((MyFlags::A | MyFlags::B).count_set(), 2);
+    /// assert_eq!(Flags::<MyFlags>::empty().count_set(), 0);
+    /// assert_eq!(Flags::<MyFlags>::full().count_set(), 4);
     /// ```
     ///
     /// # Returns
     /// Number of flags set.
-    pub fn len(self) -> u32 {
+    pub fn count_set(&self) -> u32 {
         self.0.count_ones()
     }
 
@@ -728,16 +728,16 @@ mod test {
         assert_eq!(i.next(), Some(&EnumVariant::new("F4", Some(TestU8::F4))));
         assert_eq!(i.next(), Some(&EnumVariant::new("F6", Some(TestU8::F6))));
         assert_eq!(i.next(), None);
-        assert_eq!(flags.len(), 3);
+        assert_eq!(flags.count_set(), 3);
     }
 
     #[test]
     fn test_flag_len() {
-        assert_eq!((TestU8::F2 | TestU8::F4 | TestU8::F6).len(), 3);
-        assert_eq!(Flags::<TestEmpty>::empty().len(), 0);
-        assert_eq!(Flags::<TestEmpty>::full().len(), 0);
-        assert_eq!(Flags::<TestU8>::empty().len(), 0);
-        assert_eq!(Flags::<TestU8>::full().len(), 8);
+        assert_eq!((TestU8::F2 | TestU8::F4 | TestU8::F6).count_set(), 3);
+        assert_eq!(Flags::<TestEmpty>::empty().count_set(), 0);
+        assert_eq!(Flags::<TestEmpty>::full().count_set(), 0);
+        assert_eq!(Flags::<TestU8>::empty().count_set(), 0);
+        assert_eq!(Flags::<TestU8>::full().count_set(), 8);
     }
 
     #[test]

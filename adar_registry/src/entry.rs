@@ -92,12 +92,6 @@ where
     pub fn get_id(&self) -> EntryId {
         self.id
     }
-
-    /// Leaks the entry. \
-    /// ⚠️ In production environments you should never use this method. It's only meant for quick prototyping or debugging.
-    pub unsafe fn leak(self) {
-        std::mem::forget(self);
-    }
 }
 
 impl<T> Drop for Entry<T> {

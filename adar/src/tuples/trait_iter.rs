@@ -2,7 +2,7 @@ use crate::tuples::*;
 use core::marker::PhantomData;
 
 pub trait TupleAtTrait<T: ?Sized> {
-    fn at_trait<'a>(&'a self, index: usize) -> Option<&'a T>;
+    fn at_trait(&self, index: usize) -> Option<&T>;
 }
 
 pub struct TupleTraitIterator<'a, T: ?Sized, U: ?Sized> {
@@ -52,7 +52,7 @@ macro_rules! impl_tuple_trait {
             $( T: AsTraitRef<$T>, )+
             $( $T: 'static ),+
         {
-            fn at_trait<'a>(&'a self, index: usize) -> Option<&'a T> {
+            fn at_trait(&self, index: usize) -> Option<&T> {
                 match index {
                     $(
                         $idx => Some(T::as_trait_ref(&self.$idx)),
@@ -67,7 +67,7 @@ macro_rules! impl_tuple_trait {
             $( T: AsTraitMut<$T>, )+
             $( $T: 'static ),+
         {
-            fn at_trait_mut<'a>(&'a mut self, index: usize) -> Option<&'a mut T> {
+            fn at_trait_mut(&mut self, index: usize) -> Option<&mut T> {
                 match index {
                     $( $idx => {
                         let r: &mut $T = &mut self.$idx;
@@ -81,7 +81,7 @@ macro_rules! impl_tuple_trait {
 }
 
 pub trait TupleAtTraitMut<T: ?Sized> {
-    fn at_trait_mut<'a>(&'a mut self, index: usize) -> Option<&'a mut T>;
+    fn at_trait_mut(&mut self, index: usize) -> Option<&mut T>;
 }
 
 pub struct TupleTraitIteratorMut<'a, T: ?Sized, U: ?Sized> {

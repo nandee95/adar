@@ -157,24 +157,16 @@ where
     K: Send + Sync + Ord,
 {
     fn get(&self, entry_id: u32) -> Option<&dyn Any> {
-        let Some(key) = self.entry_map.get(&entry_id) else {
-            return None;
-        };
-        if let Some(value) = self.map.get(key) {
-            Some(value)
-        } else {
-            None
-        }
+        self.entry_map
+            .get(&entry_id)
+            .and_then(|key| self.map.get(key))
+            .map(|v| v as &dyn Any)
     }
     fn get_mut(&mut self, entry_id: EntryId) -> Option<&mut dyn Any> {
-        let Some(key) = self.entry_map.get(&entry_id) else {
-            return None;
-        };
-        if let Some(value) = self.map.get_mut(key) {
-            Some(value)
-        } else {
-            None
-        }
+        self.entry_map
+            .get(&entry_id)
+            .and_then(|key| self.map.get_mut(key))
+            .map(|v| v as &mut dyn Any)
     }
     fn remove(&mut self, entry_id: EntryId) {
         let key = self

@@ -46,7 +46,6 @@ macro_rules! impl_concat_tuple {
         impl TupleConcat<(), ()> for () {
             #[inline(always)]
             fn concat(self, _other: ()) -> () {
-                ()
             }
         }
     };
