@@ -1,6 +1,6 @@
 use crate::{
     state_machine::{EndState, HasEndState},
-    utils::{MaybeSend, UnitType},
+    utils::MaybeSend,
 };
 #[cfg(feature = "alloc")]
 use alloc::boxed::Box;
@@ -10,11 +10,9 @@ use core::marker::PhantomData;
 pub trait StateTypesAsync<P1 = (), P2 = (), P3 = (), P4 = (), P5 = (), P6 = (), P7 = (), P8 = ()>
 where
     Self: MaybeSend,
-    Self::Args: MaybeSend,
 {
     type States;
     type Context;
-    type Args;
 }
 
 #[cfg_attr(feature="async-st", async_trait(?Send))]
@@ -25,21 +23,17 @@ where
 {
     #[allow(unused_variables)]
     #[inline(always)]
-    async fn on_enter(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {}
+    async fn on_enter(&mut self, context: &mut Self::Context) {}
 
     #[allow(unused_variables)]
     #[inline(always)]
-    async fn on_update(
-        &mut self,
-        args: Option<&mut Self::Args>,
-        context: &mut Self::Context,
-    ) -> Option<Self::States> {
+    async fn on_update(&mut self, context: &mut Self::Context) -> Option<Self::States> {
         None
     }
 
     #[allow(unused_variables)]
     #[inline(always)]
-    async fn on_leave(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {}
+    async fn on_leave(&mut self, context: &mut Self::Context) {}
 }
 
 #[cfg_attr(feature="async-st", async_trait(?Send))]
@@ -91,7 +85,7 @@ where
         S2: StateTypesAsync<P1, P2, P3, P4, P5, P6, P7, P8, States = S> + Into<S::States>,
     {
         let mut state = state.into() as S::States;
-        state.on_enter(None, &mut context).await;
+        state.on_enter(&mut context).await;
         StateMachineAsync::<S2::States, P1, P2, P3, P4, P5, P6, P7, P8> {
             state,
             context,
@@ -107,52 +101,27 @@ where
         Self::new_context(state, S::Context::default()).await
     }
 
-    pub async fn run_args(&mut self, args: &mut S::Args) {
-        while let Some(new_state) =
-            StateAsync::on_update(&mut self.state, Some(args), &mut self.context).await
+    pub async fn run(&mut self) {
+        while let Some(new_state) = StateAsync::on_update(&mut self.state, &mut self.context).await
         {
             self.transition(new_state).await;
         }
     }
 
-    pub async fn update_args(&mut self, args: &mut S::Args) {
-        if let Some(new_state) =
-            StateAsync::on_update(&mut self.state, Some(args), &mut self.context).await
-        {
-            self.transition_args(new_state, Some(args)).await;
+    pub async fn update(&mut self) {
+        if let Some(new_state) = StateAsync::on_update(&mut self.state, &mut self.context).await {
+            self.transition(new_state).await;
         }
     }
 
-    #[inline(always)]
     pub async fn transition(&mut self, new_state: impl Into<S>) {
-        self.transition_args(new_state, None).await;
-    }
-
-    pub async fn transition_args(
-        &mut self,
-        new_state: impl Into<S>,
-        mut args: Option<&mut S::Args>,
-    ) {
-        match args {
-            Some(ref mut a) => {
-                self.state.on_leave(Some(&mut **a), &mut self.context).await;
-                let new_state = new_state.into();
-                self.state
-                    .on_transition(&new_state, &mut self.context)
-                    .await;
-                self.state = new_state;
-                self.state.on_enter(Some(a), &mut self.context).await;
-            }
-            None => {
-                self.state.on_leave(None, &mut self.context).await;
-                let new_state = new_state.into();
-                self.state
-                    .on_transition(&new_state, &mut self.context)
-                    .await;
-                self.state = new_state;
-                self.state.on_enter(None, &mut self.context).await;
-            }
-        }
+        self.state.on_leave(&mut self.context).await;
+        let new_state = new_state.into();
+        self.state
+            .on_transition(&new_state, &mut self.context)
+            .await;
+        self.state = new_state;
+        self.state.on_enter(&mut self.context).await;
     }
 
     pub fn context(&self) -> &S::Context {
@@ -172,22 +141,7 @@ where
     }
 
     pub async fn end(mut self) {
-        self.state.on_leave(None, &mut self.context).await
-    }
-}
-
-impl<S, P1, P2, P3, P4, P5, P6, P7, P8> StateMachineAsync<S, P1, P2, P3, P4, P5, P6, P7, P8>
-where
-    S: StateAsync<P1, P2, P3, P4, P5, P6, P7, P8>
-        + MachineAsync<P1, P2, P3, P4, P5, P6, P7, P8>
-        + StateTypesAsync<P1, P2, P3, P4, P5, P6, P7, P8, States = S>,
-    S::Args: UnitType,
-{
-    pub async fn update(&mut self) {
-        self.update_args(&mut S::Args::unit()).await;
-    }
-    pub async fn run(&mut self) {
-        self.run_args(&mut S::Args::unit()).await;
+        self.state.on_leave(&mut self.context).await
     }
 }
 
@@ -224,7 +178,6 @@ where
 impl StateTypesAsync for EndState {
     type States = ();
     type Context = ();
-    type Args = ();
 }
 
 impl StateAsync for EndState {}
@@ -246,12 +199,11 @@ mod test {
     }
 
     type MockContext = u32;
-    type MockArgs = u16;
     #[derive(Eq, PartialEq, Debug)]
     enum MockCall {
-        OnEnter((Option<MockArgs>, MockContext)),
-        OnUpdate((Option<MockArgs>, MockContext)),
-        OnLeave((Option<MockArgs>, MockContext)),
+        OnEnter(MockContext),
+        OnUpdate(MockContext),
+        OnLeave(MockContext),
     }
 
     #[derive(Default, Clone)]
@@ -279,7 +231,7 @@ mod test {
         }
     }
 
-    #[StateEnumAsync(context=MockContext, args=MockArgs)]
+    #[StateEnumAsync(context=MockContext)]
     enum Test {
         A,
         B,
@@ -291,72 +243,51 @@ mod test {
     #[cfg_attr(feature="async-st", async_trait(?Send))]
     #[cfg_attr(not(feature = "async-st"), async_trait)]
     impl StateAsync for A {
-        async fn on_enter(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {
-            MOCK.push(MockState::A, MockCall::OnEnter((args.cloned(), *context)))
-                .await;
+        async fn on_enter(&mut self, context: &mut Self::Context) {
+            MOCK.push(MockState::A, MockCall::OnEnter(*context)).await;
         }
 
-        async fn on_update(
-            &mut self,
-            args: Option<&mut Self::Args>,
-            context: &mut Self::Context,
-        ) -> Option<Self::States> {
-            MOCK.push(MockState::A, MockCall::OnUpdate((args.cloned(), *context)))
-                .await;
+        async fn on_update(&mut self, context: &mut Self::Context) -> Option<Self::States> {
+            MOCK.push(MockState::A, MockCall::OnUpdate(*context)).await;
             None
         }
 
-        async fn on_leave(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {
-            MOCK.push(MockState::A, MockCall::OnLeave((args.cloned(), *context)))
-                .await;
+        async fn on_leave(&mut self, context: &mut Self::Context) {
+            MOCK.push(MockState::A, MockCall::OnLeave(*context)).await;
         }
     }
 
     #[cfg_attr(feature="async-st", async_trait(?Send))]
     #[cfg_attr(not(feature = "async-st"), async_trait)]
     impl StateAsync for B {
-        async fn on_enter(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {
-            MOCK.push(MockState::B, MockCall::OnEnter((args.cloned(), *context)))
-                .await;
+        async fn on_enter(&mut self, context: &mut Self::Context) {
+            MOCK.push(MockState::B, MockCall::OnEnter(*context)).await;
         }
 
-        async fn on_update(
-            &mut self,
-            args: Option<&mut Self::Args>,
-            context: &mut Self::Context,
-        ) -> Option<Self::States> {
-            MOCK.push(MockState::B, MockCall::OnUpdate((args.cloned(), *context)))
-                .await;
+        async fn on_update(&mut self, context: &mut Self::Context) -> Option<Self::States> {
+            MOCK.push(MockState::B, MockCall::OnUpdate(*context)).await;
             MOCK.0.lock().await.b_transition.take()
         }
 
-        async fn on_leave(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {
-            MOCK.push(MockState::B, MockCall::OnLeave((args.cloned(), *context)))
-                .await;
+        async fn on_leave(&mut self, context: &mut Self::Context) {
+            MOCK.push(MockState::B, MockCall::OnLeave(*context)).await;
         }
     }
 
     #[cfg_attr(feature="async-st", async_trait(?Send))]
     #[cfg_attr(not(feature = "async-st"), async_trait)]
     impl StateAsync for C {
-        async fn on_enter(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {
-            MOCK.push(MockState::C, MockCall::OnEnter((args.cloned(), *context)))
-                .await;
+        async fn on_enter(&mut self, context: &mut Self::Context) {
+            MOCK.push(MockState::C, MockCall::OnEnter(*context)).await;
         }
 
-        async fn on_update(
-            &mut self,
-            args: Option<&mut Self::Args>,
-            context: &mut Self::Context,
-        ) -> Option<Self::States> {
-            MOCK.push(MockState::C, MockCall::OnUpdate((args.cloned(), *context)))
-                .await;
+        async fn on_update(&mut self, context: &mut Self::Context) -> Option<Self::States> {
+            MOCK.push(MockState::C, MockCall::OnUpdate(*context)).await;
             None
         }
 
-        async fn on_leave(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {
-            MOCK.push(MockState::C, MockCall::OnLeave((args.cloned(), *context)))
-                .await;
+        async fn on_leave(&mut self, context: &mut Self::Context) {
+            MOCK.push(MockState::C, MockCall::OnLeave(*context)).await;
         }
     }
 
@@ -425,48 +356,48 @@ mod test {
         let mut sm = StateMachineAsync::new_context(A, 0).await;
         assert_eq!(
             MOCK.take().await,
-            vec![(MockState::A, MockCall::OnEnter((None, 0)))]
+            vec![(MockState::A, MockCall::OnEnter(0))]
         );
-        sm.update_args(&mut 0).await;
+        sm.update().await;
         assert_eq!(
             MOCK.take().await,
-            vec![(MockState::A, MockCall::OnUpdate((Some(0), 0)))]
+            vec![(MockState::A, MockCall::OnUpdate(0))]
         );
         sm.transition(B).await;
         assert_eq!(
             MOCK.take().await,
             vec![
-                (MockState::A, MockCall::OnLeave((None, 0))),
-                (MockState::B, MockCall::OnEnter((None, 0)))
+                (MockState::A, MockCall::OnLeave(0)),
+                (MockState::B, MockCall::OnEnter(0))
             ]
         );
-        sm.update_args(&mut 0).await;
+        sm.update().await;
         assert_eq!(
             MOCK.take().await,
-            vec![(MockState::B, MockCall::OnUpdate((Some(0), 0)))]
+            vec![(MockState::B, MockCall::OnUpdate(0))]
         );
         sm.transition(C).await;
         assert_eq!(
             MOCK.take().await,
             vec![
-                (MockState::B, MockCall::OnLeave((None, 0))),
-                (MockState::C, MockCall::OnEnter((None, 0)))
+                (MockState::B, MockCall::OnLeave(0)),
+                (MockState::C, MockCall::OnEnter(0))
             ]
         );
-        sm.update_args(&mut 0).await;
+        sm.update().await;
         assert_eq!(
             MOCK.take().await,
-            vec![(MockState::C, MockCall::OnUpdate((Some(0), 0)))]
+            vec![(MockState::C, MockCall::OnUpdate(0))]
         );
-        sm.update_args(&mut 0).await;
+        sm.update().await;
         assert_eq!(
             MOCK.take().await,
-            vec![(MockState::C, MockCall::OnUpdate((Some(0), 0)))]
+            vec![(MockState::C, MockCall::OnUpdate(0))]
         );
         sm.end().await;
         assert_eq!(
             MOCK.take().await,
-            vec![(MockState::C, MockCall::OnLeave((None, 0)))]
+            vec![(MockState::C, MockCall::OnLeave(0))]
         );
     }
 
@@ -477,27 +408,27 @@ mod test {
         let mut sm = StateMachineAsync::new_context(B, 0).await;
         assert_eq!(
             MOCK.take().await,
-            vec![(MockState::B, MockCall::OnEnter((None, 0)))]
+            vec![(MockState::B, MockCall::OnEnter(0))]
         );
-        sm.update_args(&mut 0).await;
+        sm.update().await;
         assert_eq!(
             MOCK.take().await,
-            vec![(MockState::B, MockCall::OnUpdate((Some(0), 0)))]
+            vec![(MockState::B, MockCall::OnUpdate(0))]
         );
         MOCK.b_transition(C.into()).await;
-        sm.update_args(&mut 0).await;
+        sm.update().await;
         assert_eq!(
             MOCK.take().await,
             vec![
-                (MockState::B, MockCall::OnUpdate((Some(0), 0))),
-                (MockState::B, MockCall::OnLeave((Some(0), 0))),
-                (MockState::C, MockCall::OnEnter((Some(0), 0)))
+                (MockState::B, MockCall::OnUpdate(0)),
+                (MockState::B, MockCall::OnLeave(0)),
+                (MockState::C, MockCall::OnEnter(0))
             ]
         );
         sm.end().await;
         assert_eq!(
             MOCK.take().await,
-            vec![(MockState::C, MockCall::OnLeave((None, 0)))]
+            vec![(MockState::C, MockCall::OnLeave(0))]
         );
     }
 }

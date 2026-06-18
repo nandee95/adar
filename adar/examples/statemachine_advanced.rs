@@ -49,15 +49,11 @@ impl<T> State<T> for CountState
 where
     T: Debug,
 {
-    fn on_enter(&mut self, _args: Option<&mut Self::Args>, context: &mut Self::Context) {
+    fn on_enter(&mut self, context: &mut Self::Context) {
         context.transitions += 1;
         println!("CountState::on_enter({:?})", context);
     }
-    fn on_update(
-        &mut self,
-        _args: Option<&mut Self::Args>,
-        context: &mut Self::Context,
-    ) -> Option<Self::States> {
+    fn on_update(&mut self, context: &mut Self::Context) -> Option<Self::States> {
         self.0 += 1;
         println!("CountState::on_update({:?}) count={}", context, self.0);
         // You can make decisions based on the context or state variables
@@ -67,7 +63,7 @@ where
             None
         }
     }
-    fn on_leave(&mut self, _args: Option<&mut Self::Args>, context: &mut Self::Context) {
+    fn on_leave(&mut self, context: &mut Self::Context) {
         println!("CountState::on_leave({:?})", context);
     }
 }
@@ -76,15 +72,11 @@ impl<T> State<T> for ContinueCountState
 where
     T: Debug,
 {
-    fn on_enter(&mut self, _args: Option<&mut Self::Args>, context: &mut Self::Context) {
+    fn on_enter(&mut self, context: &mut Self::Context) {
         context.transitions += 1;
         println!("ContinueCountState::on_enter({:?})", context);
     }
-    fn on_update(
-        &mut self,
-        _args: Option<&mut Self::Args>,
-        context: &mut Self::Context,
-    ) -> Option<Self::States> {
+    fn on_update(&mut self, context: &mut Self::Context) -> Option<Self::States> {
         self.0 += 1;
         println!(
             "ContinueCountState::on_update({:?}) count={}",
@@ -101,7 +93,7 @@ where
             None
         }
     }
-    fn on_leave(&mut self, _args: Option<&mut Self::Args>, context: &mut Self::Context) {
+    fn on_leave(&mut self, context: &mut Self::Context) {
         println!("ContinueCountState::on_leave({:?})", context);
     }
 }
@@ -110,15 +102,11 @@ impl<T> State<T> for DurationState
 where
     T: Debug,
 {
-    fn on_enter(&mut self, _args: Option<&mut Self::Args>, context: &mut Self::Context) {
+    fn on_enter(&mut self, context: &mut Self::Context) {
         context.transitions += 1;
         println!("DurationState::on_enter({:?})", context);
     }
-    fn on_update(
-        &mut self,
-        _args: Option<&mut Self::Args>,
-        context: &mut Self::Context,
-    ) -> Option<Self::States> {
+    fn on_update(&mut self, context: &mut Self::Context) -> Option<Self::States> {
         let now = Instant::now();
         let elapsed = now - self.start;
         println!(
@@ -132,7 +120,7 @@ where
             None
         }
     }
-    fn on_leave(&mut self, _args: Option<&mut Self::Args>, context: &mut Self::Context) {
+    fn on_leave(&mut self, context: &mut Self::Context) {
         println!("DurationState::on_leave({:?})", context);
     }
 }
@@ -141,19 +129,15 @@ impl<T> State<T> for ExitState
 where
     T: Debug,
 {
-    fn on_enter(&mut self, _args: Option<&mut Self::Args>, context: &mut Self::Context) {
+    fn on_enter(&mut self, context: &mut Self::Context) {
         context.transitions += 1;
         println!("ExitState::on_enter({:?})", context);
     }
-    fn on_update(
-        &mut self,
-        _args: Option<&mut Self::Args>,
-        context: &mut Self::Context,
-    ) -> Option<Self::States> {
+    fn on_update(&mut self, context: &mut Self::Context) -> Option<Self::States> {
         println!("ExitState::on_update({:?})", context);
         None
     }
-    fn on_leave(&mut self, _args: Option<&mut Self::Args>, context: &mut Self::Context) {
+    fn on_leave(&mut self, context: &mut Self::Context) {
         println!("ExitState::on_leave({:?})", context);
     }
 }

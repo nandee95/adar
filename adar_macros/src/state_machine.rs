@@ -56,12 +56,6 @@ pub fn state_enum_macro_inner(
     let visibility = &input.vis;
 
     let StateMachineArgs {
-        args:
-            ComplexType {
-                generics: args_gen,
-                typ: args_type,
-                wher: args_where,
-            },
         context:
             ComplexType {
                 generics: ctx_gen,
@@ -70,10 +64,6 @@ pub fn state_enum_macro_inner(
             },
     } = args;
 
-    let combined_gen = combine_generics(args_gen, ctx_gen);
-    let combined_where = combine_where(args_where, ctx_where);
-
-    let args_type = args_type.map(|v| quote! {#v}).unwrap_or(quote! {()});
     let ctx_type = ctx_type.map(|v| quote! {#v}).unwrap_or(quote! {()});
 
     let mut derive = quote! {};
@@ -123,9 +113,8 @@ pub fn state_enum_macro_inner(
         });
 
         let meta = quote! {
-            impl #combined_gen #state_types_type #combined_gen for #variant_ident #combined_where {
+            impl #ctx_gen #state_types_type #ctx_gen for #variant_ident #ctx_where {
                 type States = #ident;
-                type Args = #args_type;
                 type Context = #ctx_type;
             }
 
@@ -194,32 +183,31 @@ pub fn state_enum_macro_inner(
         )*
 
 
-        impl #combined_gen #state_types_type #combined_gen for #ident #combined_where{
+        impl #ctx_gen #state_types_type #ctx_gen for #ident #ctx_where{
             type States = Self;
-            type Args = #args_type;
             type Context = #ctx_type;
         }
 
         #opt_async_trait
-        impl #combined_gen #state_type #combined_gen for #ident #combined_where
+        impl #ctx_gen #state_type #ctx_gen for #ident #ctx_where
         {
-            #fn_type on_enter(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {
+            #fn_type on_enter(&mut self, context: &mut Self::Context) {
                 match self {
-                    #(Self::#variants(s)=> #variants::on_enter(s, args, context) #opt_await),*,
+                    #(Self::#variants(s)=> #variants::on_enter(s, context) #opt_await),*,
                     _=>(),
                 }
             }
 
-            #fn_type on_update(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) -> Option<Self::States> {
+            #fn_type on_update(&mut self, context: &mut Self::Context) -> Option<Self::States> {
                 match self {
-                    #(Self::#variants(s)=> #variants::on_update(s, args, context) #opt_await),*,
+                    #(Self::#variants(s)=> #variants::on_update(s, context) #opt_await),*,
                     _=>None,
                 }
             }
 
-            #fn_type on_leave(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {
+            #fn_type on_leave(&mut self, context: &mut Self::Context) {
                 match self {
-                    #(Self::#variants(s)=> #variants::on_leave(s, args, context) #opt_await),*,
+                    #(Self::#variants(s)=> #variants::on_leave(s, context) #opt_await),*,
                     _=>(),
                 }
             }
@@ -238,7 +226,6 @@ pub struct ComplexType {
 
 #[derive(Default, Debug)]
 pub struct StateMachineArgs {
-    pub args: ComplexType,
     pub context: ComplexType,
 }
 
@@ -253,9 +240,7 @@ impl Parse for StateMachineArgs {
             let ident: syn::Ident = input.parse()?;
             input.parse::<Token![=]>()?;
 
-            if ident == "args" {
-                result.args = Self::parse_type(&input)?;
-            } else if ident == "context" {
+            if ident == "context" {
                 result.context = Self::parse_type(&input)?;
             } else {
                 return Err(syn::Error::new(
@@ -287,27 +272,5 @@ impl StateMachineArgs {
                 None
             },
         })
-    }
-}
-
-pub fn combine_where(a: Option<WhereClause>, b: Option<WhereClause>) -> Option<WhereClause> {
-    match (a, b) {
-        (None, None) => None,
-        (Some(w), None) | (None, Some(w)) => Some(w),
-        (Some(mut w1), Some(w2)) => {
-            w1.predicates.extend(w2.predicates);
-            Some(w1)
-        }
-    }
-}
-
-pub fn combine_generics(a: Option<Generics>, b: Option<Generics>) -> Option<Generics> {
-    match (a, b) {
-        (None, None) => None,
-        (Some(g), None) | (None, Some(g)) => Some(g),
-        (Some(mut g1), Some(g2)) => {
-            g1.params.extend(g2.params);
-            Some(g1)
-        }
     }
 }

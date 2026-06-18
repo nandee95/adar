@@ -9,22 +9,14 @@ enum States {
 impl Machine for States {}
 
 impl State for State1 {
-    fn on_update(
-        &mut self,
-        _args: Option<&mut Self::Args>,
-        _context: &mut Self::Context,
-    ) -> Option<Self::States> {
+    fn on_update(&mut self, _context: &mut Self::Context) -> Option<Self::States> {
         println!("State1 update");
         Some(State2.into())
     }
 }
 
 impl State for State2 {
-    fn on_update(
-        &mut self,
-        _args: Option<&mut Self::Args>,
-        _context: &mut Self::Context,
-    ) -> Option<Self::States> {
+    fn on_update(&mut self, _context: &mut Self::Context) -> Option<Self::States> {
         println!("State2 update");
         Some(State1.into())
     }

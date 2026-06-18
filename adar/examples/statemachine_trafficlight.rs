@@ -27,56 +27,40 @@ impl Machine for TrafficLight {
 }
 
 impl State for Go {
-    fn on_enter(&mut self, _args: Option<&mut Self::Args>, _context: &mut Self::Context) {
+    fn on_enter(&mut self, _context: &mut Self::Context) {
         println!("⚫\n⚫\n🟢");
     }
-    fn on_update(
-        &mut self,
-        _args: Option<&mut Self::Args>,
-        _context: &mut Self::Context,
-    ) -> Option<Self::States> {
+    fn on_update(&mut self, _context: &mut Self::Context) -> Option<Self::States> {
         sleep(TrafficLight::GO_STOP_DURATION);
         Some(StopIfSafe.into())
     }
 }
 
 impl State for GetReady {
-    fn on_enter(&mut self, _args: Option<&mut Self::Args>, _context: &mut Self::Context) {
+    fn on_enter(&mut self, _context: &mut Self::Context) {
         println!("🔴\n🟡\n⚫");
     }
-    fn on_update(
-        &mut self,
-        _args: Option<&mut Self::Args>,
-        _context: &mut Self::Context,
-    ) -> Option<Self::States> {
+    fn on_update(&mut self, _context: &mut Self::Context) -> Option<Self::States> {
         sleep(TrafficLight::YELLOW_DURATION);
         Some(Go.into())
     }
 }
 
 impl State for StopIfSafe {
-    fn on_enter(&mut self, _args: Option<&mut Self::Args>, _context: &mut Self::Context) {
+    fn on_enter(&mut self, _context: &mut Self::Context) {
         println!("⚫\n🟡\n⚫");
     }
-    fn on_update(
-        &mut self,
-        _args: Option<&mut Self::Args>,
-        _context: &mut Self::Context,
-    ) -> Option<Self::States> {
+    fn on_update(&mut self, _context: &mut Self::Context) -> Option<Self::States> {
         sleep(TrafficLight::YELLOW_DURATION);
         Some(Stop.into())
     }
 }
 
 impl State for Stop {
-    fn on_enter(&mut self, _args: Option<&mut Self::Args>, _context: &mut Self::Context) {
+    fn on_enter(&mut self, _context: &mut Self::Context) {
         println!("🔴\n⚫\n⚫")
     }
-    fn on_update(
-        &mut self,
-        _args: Option<&mut Self::Args>,
-        _context: &mut Self::Context,
-    ) -> Option<Self::States> {
+    fn on_update(&mut self, _context: &mut Self::Context) -> Option<Self::States> {
         sleep(TrafficLight::GO_STOP_DURATION);
         Some(GetReady.into())
     }

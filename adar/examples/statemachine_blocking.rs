@@ -10,11 +10,7 @@ enum States {
 impl Machine for States {}
 
 impl State for State1 {
-    fn on_update(
-        &mut self,
-        _args: Option<&mut Self::Args>,
-        context: &mut Self::Context,
-    ) -> Option<Self::States> {
+    fn on_update(&mut self, context: &mut Self::Context) -> Option<Self::States> {
         *context += 1;
         println!("State1 update #{}", context);
         if *context < 3 {
@@ -27,11 +23,7 @@ impl State for State1 {
 }
 
 impl State for State2 {
-    fn on_update(
-        &mut self,
-        _args: Option<&mut Self::Args>,
-        _context: &mut Self::Context,
-    ) -> Option<Self::States> {
+    fn on_update(&mut self, _context: &mut Self::Context) -> Option<Self::States> {
         println!("State2 update");
         std::thread::sleep(Duration::from_millis(500));
         Some(State1.into())

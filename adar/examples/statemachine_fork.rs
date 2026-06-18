@@ -26,11 +26,7 @@ enum MyState {
 
 impl Machine for MyState {}
 impl State for StateAB {
-    fn on_update(
-        &mut self,
-        _args: Option<&mut Self::Args>,
-        _context: &mut Self::Context,
-    ) -> Option<Self::States> {
+    fn on_update(&mut self, _context: &mut Self::Context) -> Option<Self::States> {
         self.a.update();
         self.b.update();
 
@@ -41,11 +37,7 @@ impl State for StateAB {
 
 impl Machine for ForkA {}
 impl State for StateA {
-    fn on_update(
-        &mut self,
-        _args: Option<&mut Self::Args>,
-        _context: &mut Self::Context,
-    ) -> Option<Self::States> {
+    fn on_update(&mut self, _context: &mut Self::Context) -> Option<Self::States> {
         self.0 += 1;
         println!("StateA({})", self.0);
 
@@ -54,11 +46,7 @@ impl State for StateA {
 }
 impl Machine for ForkB {}
 impl State for StateB {
-    fn on_update(
-        &mut self,
-        _args: Option<&mut Self::Args>,
-        _context: &mut Self::Context,
-    ) -> Option<Self::States> {
+    fn on_update(&mut self, _context: &mut Self::Context) -> Option<Self::States> {
         self.0 += 1;
         println!("StateB({})", self.0);
 

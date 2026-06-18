@@ -1,10 +1,8 @@
-use crate::utils::UnitType;
 use core::marker::PhantomData;
 
 pub trait StateTypes<P1 = (), P2 = (), P3 = (), P4 = (), P5 = (), P6 = (), P7 = (), P8 = ()> {
     type States;
     type Context;
-    type Args;
 }
 
 pub trait State<P1 = (), P2 = (), P3 = (), P4 = (), P5 = (), P6 = (), P7 = (), P8 = ()>
@@ -13,21 +11,17 @@ where
 {
     #[allow(unused_variables)]
     #[inline(always)]
-    fn on_enter(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {}
+    fn on_enter(&mut self, context: &mut Self::Context) {}
 
     #[allow(unused_variables)]
     #[inline(always)]
-    fn on_update(
-        &mut self,
-        args: Option<&mut Self::Args>,
-        context: &mut Self::Context,
-    ) -> Option<Self::States> {
+    fn on_update(&mut self, context: &mut Self::Context) -> Option<Self::States> {
         None
     }
 
     #[allow(unused_variables)]
     #[inline(always)]
-    fn on_leave(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {}
+    fn on_leave(&mut self, context: &mut Self::Context) {}
 }
 
 pub trait Machine<P1 = (), P2 = (), P3 = (), P4 = (), P5 = (), P6 = (), P7 = (), P8 = ()>
@@ -67,7 +61,7 @@ where
         S2: StateTypes<P1, P2, P3, P4, P5, P6, P7, P8, States = S> + Into<S::States>,
     {
         let mut state = state.into() as S2::States;
-        state.on_enter(None, &mut context);
+        state.on_enter(&mut context);
         StateMachine::<S2::States, P1, P2, P3, P4, P5, P6, P7, P8> {
             state,
             context,
@@ -75,6 +69,7 @@ where
         }
     }
 
+    #[inline(always)]
     pub fn new<S2>(state: S2) -> Self
     where
         S2: StateTypes<P1, P2, P3, P4, P5, P6, P7, P8, States = S> + Into<S::States>,
@@ -83,41 +78,24 @@ where
         Self::new_context(state, S::Context::default())
     }
 
-    pub fn run_args(&mut self, args: &mut S::Args) {
-        while let Some(new_state) = State::on_update(&mut self.state, Some(args), &mut self.context)
-        {
+    pub fn run(&mut self) {
+        while let Some(new_state) = State::on_update(&mut self.state, &mut self.context) {
             self.transition(new_state);
         }
     }
 
-    pub fn update_args(&mut self, args: &mut S::Args) {
-        if let Some(new_state) = State::on_update(&mut self.state, Some(args), &mut self.context) {
-            self.transition_args(new_state, Some(args));
+    pub fn update(&mut self) {
+        if let Some(new_state) = State::on_update(&mut self.state, &mut self.context) {
+            self.transition(new_state);
         }
     }
 
-    #[inline(always)]
     pub fn transition(&mut self, new_state: impl Into<S>) {
-        self.transition_args(new_state, None);
-    }
-
-    pub fn transition_args(&mut self, new_state: impl Into<S>, mut args: Option<&mut S::Args>) {
-        match args {
-            Some(ref mut a) => {
-                self.state.on_leave(Some(&mut **a), &mut self.context);
-                let new_state = new_state.into();
-                self.state.on_transition(&new_state, &mut self.context);
-                self.state = new_state;
-                self.state.on_enter(Some(a), &mut self.context);
-            }
-            None => {
-                self.state.on_leave(None, &mut self.context);
-                let new_state = new_state.into();
-                self.state.on_transition(&new_state, &mut self.context);
-                self.state = new_state;
-                self.state.on_enter(None, &mut self.context);
-            }
-        }
+        self.state.on_leave(&mut self.context);
+        let new_state = new_state.into();
+        self.state.on_transition(&new_state, &mut self.context);
+        self.state = new_state;
+        self.state.on_enter(&mut self.context);
     }
 
     pub fn context(&self) -> &S::Context {
@@ -134,21 +112,6 @@ where
 
     pub fn state_mut(&mut self) -> &mut S::States {
         &mut self.state
-    }
-}
-
-impl<S, P1, P2, P3, P4, P5, P6, P7, P8> StateMachine<S, P1, P2, P3, P4, P5, P6, P7, P8>
-where
-    S: State<P1, P2, P3, P4, P5, P6, P7, P8>
-        + Machine<P1, P2, P3, P4, P5, P6, P7, P8>
-        + StateTypes<P1, P2, P3, P4, P5, P6, P7, P8, States = S>,
-    S::Args: UnitType,
-{
-    pub fn update(&mut self) {
-        self.update_args(&mut S::Args::unit());
-    }
-    pub fn run(&mut self) {
-        self.run_args(&mut S::Args::unit());
     }
 }
 
@@ -189,7 +152,7 @@ where
         + StateTypes<P1, P2, P3, P4, P5, P6, P7, P8, States = S>,
 {
     fn drop(&mut self) {
-        self.state.on_leave(None, &mut self.context)
+        self.state.on_leave(&mut self.context)
     }
 }
 
@@ -199,7 +162,6 @@ pub struct EndState;
 impl StateTypes for EndState {
     type States = ();
     type Context = ();
-    type Args = ();
 }
 
 impl State for EndState {}
@@ -223,12 +185,11 @@ mod test {
     }
 
     type MockContext = u32;
-    type MockArgs = u16;
     #[derive(Eq, PartialEq, Debug)]
     enum MockCall {
-        OnEnter((Option<MockArgs>, MockContext)),
-        OnUpdate((Option<MockArgs>, MockContext)),
-        OnLeave((Option<MockArgs>, MockContext)),
+        OnEnter(MockContext),
+        OnUpdate(MockContext),
+        OnLeave(MockContext),
     }
 
     #[derive(Default, Clone)]
@@ -256,7 +217,7 @@ mod test {
         }
     }
 
-    #[StateEnum(context=MockContext, args=MockArgs)]
+    #[StateEnum(context=MockContext)]
     enum Test {
         A,
         B,
@@ -266,57 +227,45 @@ mod test {
     impl Machine for Test {}
 
     impl State for A {
-        fn on_enter(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {
-            MOCK.push(MockState::A, MockCall::OnEnter((args.cloned(), *context)));
+        fn on_enter(&mut self, context: &mut Self::Context) {
+            MOCK.push(MockState::A, MockCall::OnEnter(*context));
         }
 
-        fn on_update(
-            &mut self,
-            args: Option<&mut Self::Args>,
-            context: &mut Self::Context,
-        ) -> Option<Self::States> {
-            MOCK.push(MockState::A, MockCall::OnUpdate((args.cloned(), *context)));
+        fn on_update(&mut self, context: &mut Self::Context) -> Option<Self::States> {
+            MOCK.push(MockState::A, MockCall::OnUpdate(*context));
             None
         }
 
-        fn on_leave(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {
-            MOCK.push(MockState::A, MockCall::OnLeave((args.cloned(), *context)));
+        fn on_leave(&mut self, context: &mut Self::Context) {
+            MOCK.push(MockState::A, MockCall::OnLeave(*context));
         }
     }
     impl State for B {
-        fn on_enter(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {
-            MOCK.push(MockState::B, MockCall::OnEnter((args.cloned(), *context)));
+        fn on_enter(&mut self, context: &mut Self::Context) {
+            MOCK.push(MockState::B, MockCall::OnEnter(*context));
         }
 
-        fn on_update(
-            &mut self,
-            args: Option<&mut Self::Args>,
-            context: &mut Self::Context,
-        ) -> Option<Self::States> {
-            MOCK.push(MockState::B, MockCall::OnUpdate((args.cloned(), *context)));
+        fn on_update(&mut self, context: &mut Self::Context) -> Option<Self::States> {
+            MOCK.push(MockState::B, MockCall::OnUpdate(*context));
             MOCK.0.lock().unwrap().b_transition.take()
         }
 
-        fn on_leave(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {
-            MOCK.push(MockState::B, MockCall::OnLeave((args.cloned(), *context)));
+        fn on_leave(&mut self, context: &mut Self::Context) {
+            MOCK.push(MockState::B, MockCall::OnLeave(*context));
         }
     }
     impl State for C {
-        fn on_enter(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {
-            MOCK.push(MockState::C, MockCall::OnEnter((args.cloned(), *context)));
+        fn on_enter(&mut self, context: &mut Self::Context) {
+            MOCK.push(MockState::C, MockCall::OnEnter(*context));
         }
 
-        fn on_update(
-            &mut self,
-            args: Option<&mut Self::Args>,
-            context: &mut Self::Context,
-        ) -> Option<Self::States> {
-            MOCK.push(MockState::C, MockCall::OnUpdate((args.cloned(), *context)));
+        fn on_update(&mut self, context: &mut Self::Context) -> Option<Self::States> {
+            MOCK.push(MockState::C, MockCall::OnUpdate(*context));
             None
         }
 
-        fn on_leave(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {
-            MOCK.push(MockState::C, MockCall::OnLeave((args.cloned(), *context)));
+        fn on_leave(&mut self, context: &mut Self::Context) {
+            MOCK.push(MockState::C, MockCall::OnLeave(*context));
         }
     }
 
@@ -355,80 +304,53 @@ mod test {
     #[serial]
     fn test_external_transition_and_update() {
         let mut sm = StateMachine::new_context(A, 0);
-        assert_eq!(
-            MOCK.take(),
-            vec![(MockState::A, MockCall::OnEnter((None, 0)))]
-        );
-        sm.update_args(&mut 0);
-        assert_eq!(
-            MOCK.take(),
-            vec![(MockState::A, MockCall::OnUpdate((Some(0), 0)))]
-        );
+        assert_eq!(MOCK.take(), vec![(MockState::A, MockCall::OnEnter(0))]);
+        sm.update();
+        assert_eq!(MOCK.take(), vec![(MockState::A, MockCall::OnUpdate(0))]);
         sm.transition(B);
         assert_eq!(
             MOCK.take(),
             vec![
-                (MockState::A, MockCall::OnLeave((None, 0))),
-                (MockState::B, MockCall::OnEnter((None, 0)))
+                (MockState::A, MockCall::OnLeave(0)),
+                (MockState::B, MockCall::OnEnter(0))
             ]
         );
-        sm.update_args(&mut 0);
-        assert_eq!(
-            MOCK.take(),
-            vec![(MockState::B, MockCall::OnUpdate((Some(0), 0)))]
-        );
+        sm.update();
+        assert_eq!(MOCK.take(), vec![(MockState::B, MockCall::OnUpdate(0))]);
         sm.transition(C);
         assert_eq!(
             MOCK.take(),
             vec![
-                (MockState::B, MockCall::OnLeave((None, 0))),
-                (MockState::C, MockCall::OnEnter((None, 0)))
+                (MockState::B, MockCall::OnLeave(0)),
+                (MockState::C, MockCall::OnEnter(0))
             ]
         );
-        sm.update_args(&mut 0);
-        assert_eq!(
-            MOCK.take(),
-            vec![(MockState::C, MockCall::OnUpdate((Some(0), 0)))]
-        );
-        sm.update_args(&mut 0);
-        assert_eq!(
-            MOCK.take(),
-            vec![(MockState::C, MockCall::OnUpdate((Some(0), 0)))]
-        );
+        sm.update();
+        assert_eq!(MOCK.take(), vec![(MockState::C, MockCall::OnUpdate(0))]);
+        sm.update();
+        assert_eq!(MOCK.take(), vec![(MockState::C, MockCall::OnUpdate(0))]);
         drop(sm);
-        assert_eq!(
-            MOCK.take(),
-            vec![(MockState::C, MockCall::OnLeave((None, 0)))]
-        );
+        assert_eq!(MOCK.take(), vec![(MockState::C, MockCall::OnLeave(0))]);
     }
 
     #[test]
     #[serial]
     fn test_internal_transition_and_update() {
         let mut sm = StateMachine::new_context(B, 0);
-        assert_eq!(
-            MOCK.take(),
-            vec![(MockState::B, MockCall::OnEnter((None, 0)))]
-        );
-        sm.update_args(&mut 0);
-        assert_eq!(
-            MOCK.take(),
-            vec![(MockState::B, MockCall::OnUpdate((Some(0), 0)))]
-        );
+        assert_eq!(MOCK.take(), vec![(MockState::B, MockCall::OnEnter(0))]);
+        sm.update();
+        assert_eq!(MOCK.take(), vec![(MockState::B, MockCall::OnUpdate(0))]);
         MOCK.b_transition(C.into());
-        sm.update_args(&mut 0);
+        sm.update();
         assert_eq!(
             MOCK.take(),
             vec![
-                (MockState::B, MockCall::OnUpdate((Some(0), 0))),
-                (MockState::B, MockCall::OnLeave((Some(0), 0))),
-                (MockState::C, MockCall::OnEnter((Some(0), 0)))
+                (MockState::B, MockCall::OnUpdate(0)),
+                (MockState::B, MockCall::OnLeave(0)),
+                (MockState::C, MockCall::OnEnter(0))
             ]
         );
         drop(sm);
-        assert_eq!(
-            MOCK.take(),
-            vec![(MockState::C, MockCall::OnLeave((None, 0)))]
-        );
+        assert_eq!(MOCK.take(), vec![(MockState::C, MockCall::OnLeave(0))]);
     }
 }

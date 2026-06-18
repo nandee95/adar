@@ -102,11 +102,10 @@ where
 - [Machine](`crate::state_machine::Machine`) callback:
   - [on_update](`crate::state_machine::Machine::on_update`) - Called when update is called
   - [on_transition](`crate::state_machine::Machine::on_transition`) - Called at each transition (after [on_leave](`crate::state_machine::State::on_leave`), before [on_enter](`crate::state_machine::State::on_enter`))
-- Pass arguments to updates (see [update_args](`crate::state_machine::StateMachine::update_args`), [run_args](`crate::state_machine::StateMachine::run_args`), [transition_args](`crate::state_machine::StateMachine::transition_args`))
 - Store context in the [StateMachine](`crate::state_machine::StateMachine`) (see [new_context](`crate::state_machine::StateMachine::new_context`), with up to 8 generic parameters)
 - Operating modes
-  - Non-blocking mode (see [update_args](crate::state_machine::StateMachine::update_args))
-  - Blocking mode (see [run_args](crate::state_machine::StateMachine::run_args))
+  - Non-blocking mode (see [update](crate::state_machine::StateMachine::update))
+  - Blocking mode (see [run](crate::state_machine::StateMachine::run))
 - Sync and Async support (see [StateMachine](crate::state_machine::StateMachine) and [StateMachineAsync](crate::state_machine::StateMachineAsync))
 - End state (see [EndState](crate::state_machine::EndState), [is_finished](crate::state_machine::HasEndState::is_finished))
 
@@ -143,12 +142,12 @@ impl Machine for TrafficLight {
 }
 
 impl State for Go {
-    fn on_enter(&mut self, _args: Option<&mut Self::Args>, _context: &mut Self::Context) {
+    fn on_enter(&mut self,  _context: &mut Self::Context) {
         println!("⚫\n⚫\n🟢");
     }
     fn on_update(
         &mut self,
-        _args: Option<&mut Self::Args>,
+        
         _context: &mut Self::Context,
     ) -> Option<Self::States> {
         std::thread::sleep(TrafficLight::GO_STOP_DURATION);
@@ -157,12 +156,12 @@ impl State for Go {
 }
 
 impl State for GetReady {
-    fn on_enter(&mut self, _args: Option<&mut Self::Args>, _context: &mut Self::Context) {
+    fn on_enter(&mut self,  _context: &mut Self::Context) {
         println!("🔴\n🟡\n⚫");
     }
     fn on_update(
         &mut self,
-        _args: Option<&mut Self::Args>,
+        
         _context: &mut Self::Context,
     ) -> Option<Self::States> {
         std::thread::sleep(TrafficLight::YELLOW_DURATION);
@@ -171,12 +170,12 @@ impl State for GetReady {
 }
 
 impl State for StopIfSafe {
-    fn on_enter(&mut self, _args: Option<&mut Self::Args>, _context: &mut Self::Context) {
+    fn on_enter(&mut self,  _context: &mut Self::Context) {
         println!("⚫\n🟡\n⚫");
     }
     fn on_update(
         &mut self,
-        _args: Option<&mut Self::Args>,
+        
         _context: &mut Self::Context,
     ) -> Option<Self::States> {
         std::thread::sleep(TrafficLight::YELLOW_DURATION);
@@ -185,12 +184,12 @@ impl State for StopIfSafe {
 }
 
 impl State for Stop {
-    fn on_enter(&mut self, _args: Option<&mut Self::Args>, _context: &mut Self::Context) {
+    fn on_enter(&mut self,  _context: &mut Self::Context) {
         println!("🔴\n⚫\n⚫")
     }
     fn on_update(
         &mut self,
-        _args: Option<&mut Self::Args>,
+        
         _context: &mut Self::Context,
     ) -> Option<Self::States> {
         std::thread::sleep(TrafficLight::GO_STOP_DURATION);
@@ -243,33 +242,9 @@ enum TrafficLight {
     StopIfSafe(StopIfSafe),
     Stop(Stop),
 }
-impl adar::prelude::ReflectEnum for TrafficLight {
-    type Type = u32;
-    fn variants() -> &'static [adar::prelude::EnumVariant<TrafficLight>] {
-        const VARIANTS: &[adar::prelude::EnumVariant<TrafficLight>] = &[
-            EnumVariant::new("Go", None),
-            EnumVariant::new("GetReady", None),
-            EnumVariant::new("StopIfSafe", None),
-            EnumVariant::new("Stop", None),
-        ];
-        VARIANTS
-    }
-    fn count() -> usize {
-        4usize
-    }
-    fn name(&self) -> &'static str {
-        match self {
-            Self::Go { .. } => "Go",
-            Self::GetReady { .. } => "GetReady",
-            Self::StopIfSafe { .. } => "StopIfSafe",
-            Self::Stop { .. } => "Stop",
-        }
-    }
-}
 struct Go;
 impl adar::prelude::StateTypes for Go {
     type States = TrafficLight;
-    type Args = ();
     type Context = ();
 }
 impl Into<TrafficLight> for Go {
@@ -280,7 +255,6 @@ impl Into<TrafficLight> for Go {
 struct GetReady;
 impl adar::prelude::StateTypes for GetReady {
     type States = TrafficLight;
-    type Args = ();
     type Context = ();
 }
 impl Into<TrafficLight> for GetReady {
@@ -291,7 +265,6 @@ impl Into<TrafficLight> for GetReady {
 struct StopIfSafe;
 impl adar::prelude::StateTypes for StopIfSafe {
     type States = TrafficLight;
-    type Args = ();
     type Context = ();
 }
 impl Into<TrafficLight> for StopIfSafe {
@@ -302,7 +275,6 @@ impl Into<TrafficLight> for StopIfSafe {
 struct Stop;
 impl adar::prelude::StateTypes for Stop {
     type States = TrafficLight;
-    type Args = ();
     type Context = ();
 }
 impl Into<TrafficLight> for Stop {
@@ -312,38 +284,33 @@ impl Into<TrafficLight> for Stop {
 }
 impl adar::prelude::StateTypes for TrafficLight {
     type States = Self;
-    type Args = ();
     type Context = ();
 }
 impl adar::prelude::State for TrafficLight {
-    fn on_enter(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {
+    fn on_enter(&mut self, context: &mut Self::Context) {
         match self {
-            Self::Go(s) => Go::on_enter(s, args, context),
-            Self::GetReady(s) => GetReady::on_enter(s, args, context),
-            Self::StopIfSafe(s) => StopIfSafe::on_enter(s, args, context),
-            Self::Stop(s) => Stop::on_enter(s, args, context),
+            Self::Go(s) => Go::on_enter(s, context),
+            Self::GetReady(s) => GetReady::on_enter(s, context),
+            Self::StopIfSafe(s) => StopIfSafe::on_enter(s, context),
+            Self::Stop(s) => Stop::on_enter(s, context),
             _ => {}
         }
     }
-    fn on_update(
-        &mut self,
-        args: Option<&mut Self::Args>,
-        context: &mut Self::Context,
-    ) -> Option<Self::States> {
+    fn on_update(&mut self, context: &mut Self::Context) -> Option<Self::States> {
         match self {
-            Self::Go(s) => Go::on_update(s, args, context),
-            Self::GetReady(s) => GetReady::on_update(s, args, context),
-            Self::StopIfSafe(s) => StopIfSafe::on_update(s, args, context),
-            Self::Stop(s) => Stop::on_update(s, args, context),
+            Self::Go(s) => Go::on_update(s, context),
+            Self::GetReady(s) => GetReady::on_update(s, context),
+            Self::StopIfSafe(s) => StopIfSafe::on_update(s, context),
+            Self::Stop(s) => Stop::on_update(s, context),
             _ => None,
         }
     }
-    fn on_leave(&mut self, args: Option<&mut Self::Args>, context: &mut Self::Context) {
+    fn on_leave(&mut self, context: &mut Self::Context) {
         match self {
-            Self::Go(s) => Go::on_leave(s, args, context),
-            Self::GetReady(s) => GetReady::on_leave(s, args, context),
-            Self::StopIfSafe(s) => StopIfSafe::on_leave(s, args, context),
-            Self::Stop(s) => Stop::on_leave(s, args, context),
+            Self::Go(s) => Go::on_leave(s, context),
+            Self::GetReady(s) => GetReady::on_leave(s, context),
+            Self::StopIfSafe(s) => StopIfSafe::on_leave(s, context),
+            Self::Stop(s) => Stop::on_leave(s, context),
             _ => {}
         }
     }

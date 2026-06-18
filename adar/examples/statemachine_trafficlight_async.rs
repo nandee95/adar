@@ -32,14 +32,10 @@ impl MachineAsync for TrafficLight {
 #[cfg_attr(feature="async-st", async_trait(?Send))]
 #[cfg_attr(not(feature = "async-st"), async_trait)]
 impl StateAsync for Go {
-    async fn on_enter(&mut self, _args: Option<&mut Self::Args>, _context: &mut Self::Context) {
+    async fn on_enter(&mut self, _context: &mut Self::Context) {
         println!("⚫\n⚫\n🟢");
     }
-    async fn on_update(
-        &mut self,
-        _args: Option<&mut Self::Args>,
-        _context: &mut Self::Context,
-    ) -> Option<Self::States> {
+    async fn on_update(&mut self, _context: &mut Self::Context) -> Option<Self::States> {
         std::thread::sleep(TrafficLight::GO_STOP_DURATION);
         Some(StopIfSafe.into())
     }
@@ -48,14 +44,10 @@ impl StateAsync for Go {
 #[cfg_attr(feature="async-st", async_trait(?Send))]
 #[cfg_attr(not(feature = "async-st"), async_trait)]
 impl StateAsync for GetReady {
-    async fn on_enter(&mut self, _args: Option<&mut Self::Args>, _context: &mut Self::Context) {
+    async fn on_enter(&mut self, _context: &mut Self::Context) {
         println!("🔴\n🟡\n⚫");
     }
-    async fn on_update(
-        &mut self,
-        _args: Option<&mut Self::Args>,
-        _context: &mut Self::Context,
-    ) -> Option<Self::States> {
+    async fn on_update(&mut self, _context: &mut Self::Context) -> Option<Self::States> {
         sleep(TrafficLight::YELLOW_DURATION).await;
         Some(Go.into())
     }
@@ -64,14 +56,10 @@ impl StateAsync for GetReady {
 #[cfg_attr(feature="async-st", async_trait(?Send))]
 #[cfg_attr(not(feature = "async-st"), async_trait)]
 impl StateAsync for StopIfSafe {
-    async fn on_enter(&mut self, _args: Option<&mut Self::Args>, _context: &mut Self::Context) {
+    async fn on_enter(&mut self, _context: &mut Self::Context) {
         println!("⚫\n🟡\n⚫");
     }
-    async fn on_update(
-        &mut self,
-        _args: Option<&mut Self::Args>,
-        _context: &mut Self::Context,
-    ) -> Option<Self::States> {
+    async fn on_update(&mut self, _context: &mut Self::Context) -> Option<Self::States> {
         sleep(TrafficLight::YELLOW_DURATION).await;
         Some(Stop.into())
     }
@@ -80,14 +68,10 @@ impl StateAsync for StopIfSafe {
 #[cfg_attr(feature="async-st", async_trait(?Send))]
 #[cfg_attr(not(feature = "async-st"), async_trait)]
 impl StateAsync for Stop {
-    async fn on_enter(&mut self, _args: Option<&mut Self::Args>, _context: &mut Self::Context) {
+    async fn on_enter(&mut self, _context: &mut Self::Context) {
         println!("🔴\n⚫\n⚫")
     }
-    async fn on_update(
-        &mut self,
-        _args: Option<&mut Self::Args>,
-        _context: &mut Self::Context,
-    ) -> Option<Self::States> {
+    async fn on_update(&mut self, _context: &mut Self::Context) -> Option<Self::States> {
         sleep(TrafficLight::GO_STOP_DURATION).await;
         Some(GetReady.into())
     }
