@@ -36,6 +36,13 @@ fn main() {
         println!("\t{}", i.to_string_capital());
     }
 
+    println!(
+        "Mixed mapped to Vec: {:?}",
+        mixed
+            .iter_trait::<dyn ToString>()
+            .map(ToString::to_string)
+            .collect::<Vec<_>>()
+    );
     println!("Concat: {:?}", homogeneous.concat(mixed));
     println!("Sum of homogeneous: {:?}", homogeneous.iter().sum::<i32>());
     println!("F32 from mixed: {:?}", mixed.select::<f32>());
