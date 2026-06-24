@@ -1,13 +1,15 @@
-pub trait TupleConcat<O, Res> {
-    fn concat(self, other: O) -> Res;
+pub trait TupleConcat<T> {
+    type Output;
+    fn concat(self, other: T) -> Self::Output;
 }
 
 macro_rules! impl_concat_tuple {
     // Non-empty + non-empty
     (($($idx_a:tt => $a:ident,)*), ($($idx_b:tt => $b:ident,)*)) => {
-        impl<$($a,)* $($b,)*> TupleConcat<($($b,)*), ($($a,)* $($b,)*)> for ($($a,)*) {
+        impl<$($a,)* $($b,)*> TupleConcat<($($b,)*)> for ($($a,)*) {
+            type Output = ($($a,)* $($b,)*);
             #[inline(always)]
-            fn concat(self, other: ($($b,)*)) -> ($($a,)* $($b,)*) {
+            fn concat(self, other: ($($b,)*)) -> Self::Output {
                 ($(
                     self.$idx_a,
                 )* $(
@@ -19,9 +21,10 @@ macro_rules! impl_concat_tuple {
 
     // Empty + non-empty
     ((,), ($($idx_b:tt => $b:ident,)*)) => {
-        impl<$($b,)*> TupleConcat<($($b,)*), ($($b,)*)> for () {
+        impl<$($b,)*> TupleConcat<($($b,)*)> for () {
+            type Output = ($($b,)*);
             #[inline(always)]
-            fn concat(self, other: ($($b,)*)) -> ($($b,)*) {
+            fn concat(self, other: ($($b,)*)) -> Self::Output {
                 ($(
                     other.$idx_b,
                 )*)
@@ -31,9 +34,10 @@ macro_rules! impl_concat_tuple {
 
     // Non-empty + empty
     (($($idx_a:tt => $a:ident,)*), (,)) => {
-        impl<$($a,)*> TupleConcat<(), ($($a,)*)> for ($($a,)*) {
+        impl<$($a,)*> TupleConcat<()> for ($($a,)*) {
+            type Output = ($($a,)*);
             #[inline(always)]
-            fn concat(self, _other: ()) -> ($($a,)*) {
+            fn concat(self, _other: ()) -> Self::Output {
                 ($(
                     self.$idx_a,
                 )*)
@@ -43,9 +47,10 @@ macro_rules! impl_concat_tuple {
 
     // Empty + empty
     ((,), (,)) => {
-        impl TupleConcat<(), ()> for () {
+        impl TupleConcat<()> for () {
+            type Output = ();
             #[inline(always)]
-            fn concat(self, _other: ()) -> () {
+            fn concat(self, _other: ()) -> Self::Output {
             }
         }
     };
