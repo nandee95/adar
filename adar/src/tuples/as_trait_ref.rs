@@ -1,5 +1,3 @@
-use core::ops::{Deref, DerefMut};
-
 pub trait AsTraitRef<T: ?Sized> {
     fn as_trait_ref(value: &T) -> &Self;
 }
@@ -7,9 +5,9 @@ pub trait AsTraitMut<T: ?Sized> {
     fn as_trait_mut(value: &mut T) -> &mut Self;
 }
 
-macro_rules! impl_as_trait_ref {
-    ($trait:path) => {
-        impl<T> AsTraitRef<T> for dyn $trait
+macro_rules! impl_as_trait_ref_impl {
+    ($trait:path, $($generics:tt)*) => {
+        impl<T, $($generics)*> AsTraitRef<T> for dyn $trait
         where
             T: $trait + 'static,
         {
@@ -17,7 +15,7 @@ macro_rules! impl_as_trait_ref {
                 value
             }
         }
-        impl<T> AsTraitMut<T> for dyn $trait
+        impl<T, $($generics)*> AsTraitMut<T> for dyn $trait
         where
             T: $trait + 'static,
         {
@@ -28,6 +26,16 @@ macro_rules! impl_as_trait_ref {
     };
 }
 
+macro_rules! impl_as_trait_ref {
+    ($trait:path) => {
+        impl_as_trait_ref_impl!($trait,);
+    };
+    ($trait:path, $($generics:tt)+) => {
+        impl_as_trait_ref_impl!($trait, $($generics)+);
+    };
+}
+
+impl_as_trait_ref!(Fn());
 impl_as_trait_ref!(core::any::Any);
 impl_as_trait_ref!(core::fmt::Debug);
 impl_as_trait_ref!(core::fmt::Display);
@@ -53,39 +61,6 @@ impl_as_trait_ref!(std::io::BufRead);
 impl_as_trait_ref!(std::io::Seek);
 #[cfg(feature = "std")]
 impl_as_trait_ref!(std::string::ToString);
-
-impl<T, U> AsTraitRef<T> for dyn Deref<Target = U>
-where
-    T: Deref<Target = U> + 'static,
-{
-    fn as_trait_ref(value: &T) -> &Self {
-        value
-    }
-}
-
-impl<T, U> AsTraitMut<T> for dyn Deref<Target = U>
-where
-    T: Deref<Target = U> + 'static,
-{
-    fn as_trait_mut(value: &mut T) -> &mut Self {
-        value
-    }
-}
-
-impl<T, U> AsTraitRef<T> for dyn DerefMut<Target = U>
-where
-    T: DerefMut<Target = U> + 'static,
-{
-    fn as_trait_ref(value: &T) -> &(dyn DerefMut<Target = U> + 'static) {
-        value
-    }
-}
-
-impl<T, U> AsTraitMut<T> for dyn DerefMut<Target = U>
-where
-    T: DerefMut<Target = U> + 'static,
-{
-    fn as_trait_mut(value: &mut T) -> &mut Self {
-        value
-    }
-}
+impl_as_trait_ref!(core::future::Future<Output = OUTPUT>, OUTPUT);
+impl_as_trait_ref!(core::ops::Deref<Target = TARGET>, TARGET);
+impl_as_trait_ref!(core::ops::DerefMut<Target = TARGET>, TARGET);
