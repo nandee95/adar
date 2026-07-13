@@ -30,12 +30,8 @@ fn main() {
 
 fn print_state(step: &'static str, menu: &Registry<MenuItem>, styles: &Registry<StyleSheet>) {
     println!("{}", step);
-    println!("\tMenu:");
-    for (e, item) in menu.read().iter() {
-        println!("\t\t{}: {}", e, item.0);
-    }
-    println!("\tStyleSheets:");
-    for (e, item) in styles.read().iter() {
-        println!("\t\t{}: {}", e, item.0);
-    }
+    let menu: Vec<_> = menu.read().iter().map(|v| v.1 .0).collect();
+    println!(" - Menu: {}", menu.join(", "));
+    let styles: Vec<_> = styles.read().iter().map(|v| v.1 .0).collect();
+    println!(" - StyleSheets: {}", styles.join(", "));
 }

@@ -4,7 +4,7 @@
 [![Downloads](https://img.shields.io/crates/d/adar.svg)](https://crates.io/crates/adar)
 [![Docs](https://docs.rs/adar/badge.svg)](https://docs.rs/adar/latest/adar/)
 
-Adar is a collection of architectural tools that help you write more readable and performant code.
+Adar is a collection of architectural tools including flags, state machine, enum and tuple operations & more.
 
 ### Table of contents
 - [Flags](#flags)

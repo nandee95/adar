@@ -36,12 +36,12 @@ impl<T, GFT> TupleSelectMut<Self, GFT> for T {
     }
 }
 
-/// Helper tuple for [`super::TupleSelect`].
+/// Helper trait for [`super::TupleSelect`].
 pub trait SelectFromTuple<T, GFT> {
     fn get_from(tuple: &T) -> &Self;
 }
 
-/// Helper tuple for [`super::TupleSelectMut`].
+/// Helper trait for [`super::TupleSelectMut`].
 pub trait SelectFromTupleMut<T, GFT> {
     fn get_from_mut(tuple: &mut T) -> &mut Self;
 }

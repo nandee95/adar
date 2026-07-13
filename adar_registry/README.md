@@ -1,12 +1,12 @@
-# Advanced Architecture (ADAR)
+# Advanced Architecture (ADAR) - Registry
 
 [![Crates.io](https://img.shields.io/crates/v/adar_registry.svg)](https://crates.io/crates/adar_registry)
 [![Downloads](https://img.shields.io/crates/d/adar_registry.svg)](https://crates.io/crates/adar_registry)
 [![Docs](https://docs.rs/adar_registry/badge.svg)](https://docs.rs/adar_registry/latest/adar_registry/)
 
-Adar is a collection of architectural tools that help you write more readable and performant code.
+Adar registry is a collection of containers for managing resources in dynamically loaded extensions/plugins.
 
-> Disclaimer: This crate uses some `unsafe` code. Please refer to the comments in the source code for details. (PRs are welcome to convert it to safe code)
+> Disclaimer: This crate uses some `unsafe` code. Please refer to the `SAFETY` comments in the source code for details.
 
 ## [Registry](`prelude::Registry`)
 
@@ -48,15 +48,11 @@ fn main() {
 
 fn print_state(step: &'static str, menu: &Registry<MenuItem>, styles: &Registry<StyleSheet>) {
     println!("{}", step);
-    println!("\tMenu:");
-    for (e, item) in menu.read().iter() {
-        println!("\t\t{}: {}", e, item.0);
-    }
-    println!("\tStyleSheets:");
-    for (e, item) in styles.read().iter() {
-        println!("\t\t{}: {}", e, item.0);
-    }
-}// All of the different kind of resources registered by the extension are unloaded here
+    let menu: Vec<_> = menu.read().iter().map(|v| v.1 .0).collect();
+    println!(" - Menu: {}", menu.join(", "));
+    let styles: Vec<_> = styles.read().iter().map(|v| v.1 .0).collect();
+    println!(" - StyleSheets: {}", styles.join(", "));
+}
 ```
 
 <details>
@@ -65,26 +61,14 @@ fn print_state(step: &'static str, menu: &Registry<MenuItem>, styles: &Registry<
 
 ```ignore
 Original website
-        Menu:
-                0: Home
-                1: About
-        StyleSheets:
-                0: website.css
+ - Menu: Home, About
+ - StyleSheets: website.css
 After extension is loaded
-        Menu:
-                0: Home
-                1: About
-                2: Weather
-                3: News
-        StyleSheets:
-                0: website.css
-                1: extension.css
+ - Menu: Home, About, Weather, News
+ - StyleSheets: website.css, extension.css
 After extension is unloaded
-        Menu:
-                0: Home
-                1: About
-        StyleSheets:
-                0: website.css
+ - Menu: Home, About
+ - StyleSheets: website.css
 ```
 
 </details>
