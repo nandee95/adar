@@ -143,7 +143,7 @@ fn main() {
 
 <details>
 <summary>Click to see the output</summary>
-<code><b>>> cargo run --example registry_extension</b></code>
+<code><b>>> cargo run --example event</b></code>
 
 ```ignore
 Observer #1 called: (1, "First event")
@@ -155,7 +155,7 @@ Observer #1 called: (2, "Second event")
 
 ## [TracedRegistry](`prelude::TracedRegistry`)
 
-[TracedRegistry](`prelude::TracedRegistry`) is an extension of [Registry](`prelude::Registry`). It enables you to register multiple observers that handle registering or unregistering elements.
+[TracedRegistry](`prelude::TracedRegistry`) is an expansion of [Registry](`prelude::Registry`). It enables you to register multiple observers that notify upon registering or unregistering elements.
 
 ### Example
 
@@ -168,10 +168,10 @@ fn main() {
         println!("{:?}, {:?}, {}", event, entry, value)
     });
 
-    let foo = registry.register("foo");
-    let bar = registry.register("bar");
+    let foo = registry.register("one");
+    let bar = registry.register("two");
     drop(foo);
-    let baz = registry.register("baz");
+    let baz = registry.register("three");
     drop(bar);
     drop(baz);
 }
@@ -179,15 +179,53 @@ fn main() {
 
 <details>
 <summary>Click to see the output</summary>
-<code><b>>> cargo run --example registry_extension</b></code>
+<code><b>>> cargo run --example traced_registry</b></code>
 
 ```ignore
-Register, 0, foo
-Register, 1, bar
-UnRegister, 0, foo
-Register, 2, baz
-UnRegister, 1, bar
-UnRegister, 2, baz
+Register, 0, one
+Register, 1, two
+UnRegister, 0, one
+Register, 2, three
+UnRegister, 1, two
+UnRegister, 2, three
+```
+
+</details>
+
+## [TracedRegistryMap](`prelude::TracedRegistryMap`)
+
+[TracedRegistryMap](`prelude::TracedRegistryMap`) is an expansion of [RegistryMap](`prelude::RegistryMap`). It enables you to register multiple observers that notify upon registering or unregistering elements.
+
+
+```rust
+use adar_registry::prelude::*;
+
+fn main() {
+    let registry = TracedRegistryMap::<&'static str, i32>::new();
+    let _observer = registry.register_observer(|(event, entry, key, value): &_| {
+        println!("{:?}, {:?}, {}, {}", event, entry, key, value)
+    });
+
+    let foo = registry.register("one", 1);
+    let bar = registry.register("two", 2);
+    drop(foo);
+    let baz = registry.register("three", 3);
+    drop(bar);
+    drop(baz);
+}
+```
+
+<details>
+<summary>Click to see the output</summary>
+<code><b>>> cargo run --example traced_registry_map</b></code>
+
+```ignore
+Register, 0, one, 1
+Register, 1, two, 2
+UnRegister, 0, one, 1
+Register, 2, three, 3
+UnRegister, 1, two, 2
+UnRegister, 2, three, 3
 ```
 
 </details>
