@@ -1,6 +1,6 @@
 [package]
 name = "adar"
-version = "0.2.1"
+version = "0.3.0"
 edition = "2021"
 license = "MIT"
 description = "Adar is a collection of architectural tools including flags, state machine, enum and tuple operations & more."
@@ -21,7 +21,7 @@ async-st = ["adar-macros/async-st"]
 
 [dependencies]
 num-traits = { version = "0.2.19", default-features = false }
-adar-macros = { version = "0.2.1" }
+adar-macros = { version = "0.3.0" }
 serde = { version = "1.0", default-features = false, optional = true }
 async-trait = { version = "0.1.89", optional = true }
 

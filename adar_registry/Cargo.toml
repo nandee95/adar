@@ -1,6 +1,6 @@
 [package]
 name = "adar-registry"
-version = "0.2.1"
+version = "0.3.0"
 edition = "2021"
 license = "MIT"
 description = "Adar registry is a collection of containers for managing resources in dynamically loaded extensions/plugins."
